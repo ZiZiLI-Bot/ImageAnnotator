@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Noto Sans', sans-serif;
+}
+
+.upload-list-inline .ant-upload-list-item {
+  float: left;
+  width: 149px;
+  height: 50px !important;
+  margin-inline-end: 8px;
+}
