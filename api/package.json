@@ -5,9 +5,9 @@
   "main": "main.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon --experimental-modules --es-module-specifier-resolution=node src/main.js",
+    "dev": "nodemon --es-module-specifier-resolution=node src/main.js",
     "build": "swc src --out-dir dist --source-maps",
-    "start": "node --experimental-modules --es-module-specifier-resolution=node dist/main.js",
+    "start": "node --es-module-specifier-resolution=node dist/main.js",
     "clean": "rm -rf dist"
   },
   "author": "T_Hung",

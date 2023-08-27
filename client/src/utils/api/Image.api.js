@@ -8,6 +8,9 @@ const ImageAPI = {
   updateAnnotation: async (data) => {
     return await AxiosClient.post(API_ENDPOINTS.UPDATE_ANNOTATION, data);
   },
+  deleteImage: async (data) => {
+    return await AxiosClient.delete(API_ENDPOINTS.DELETE_IMAGE, { data });
+  },
 };
 
 export default ImageAPI;

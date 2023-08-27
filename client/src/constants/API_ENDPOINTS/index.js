@@ -12,6 +12,7 @@ const API_ENDPOINTS = {
   GET_PUBLIC_DATASETS: 'dataset/public',
   CREATE_MULTIPLE_IMAGES: 'image/createMultipleImages',
   UPDATE_ANNOTATION: 'image/updateAnnotation',
+  DELETE_IMAGE: 'image/delete',
 };
 
 export default API_ENDPOINTS;

@@ -119,7 +119,7 @@ export default function DatasetPage() {
         </Space>
       ),
     }));
-    console.log(items);
+    // console.log(items);
     setItemsAccordion(items);
   };
 
@@ -244,6 +244,23 @@ export default function DatasetPage() {
   const HandleChangeImageActive = (image) => {
     setImageActive(image);
     setItemsBoundingBox(image?.annotations);
+  };
+
+  const HandleDeleteImage = async (id) => {
+    const data = {
+      datasetId: Dataset._id,
+      imageId: id,
+    };
+    const res = await ImageAPI.deleteImage(data);
+    if (res?.success) {
+      const newDataset = Dataset;
+      newDataset.images = newDataset.images.filter((image) => image._id !== id);
+      setDataset(newDataset);
+      HandleChangeImageActive(newDataset.images[0]);
+      message.success(res?.message);
+    } else {
+      message.error(res?.message);
+    }
   };
 
   return (
@@ -392,7 +409,11 @@ export default function DatasetPage() {
               </Col>
               <Col span={12} className='flex items-center justify-center'>
                 <Space direction='vertical'>
-                  <Button type='' className='bg-red-600 hover:bg-red-500 text-white'>
+                  <Button
+                    type=''
+                    className='bg-red-600 hover:bg-red-500 text-white'
+                    onClick={() => HandleDeleteImage(image._id)}
+                  >
                     Delete
                   </Button>
                   <Button

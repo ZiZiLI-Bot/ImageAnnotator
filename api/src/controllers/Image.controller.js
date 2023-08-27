@@ -1,4 +1,5 @@
 import ImageModel from '../models/Image.model';
+import DatasetModel from '../models/Dataset.model';
 import { error, success } from '../utils/Response';
 
 const ImageController = {
@@ -18,6 +19,21 @@ const ImageController = {
       return success(res, updatedImage, 'Update annotation successfully');
     } catch (err) {
       return error(res, err, 'Error when update annotation');
+    }
+  },
+  deleteImage: async (req, res) => {
+    const { imageId, datasetId } = req.body;
+    console.log(imageId, datasetId);
+    try {
+      const deletedImage = await ImageModel.findByIdAndDelete(imageId);
+      const dataset = await DatasetModel.findById(datasetId);
+      if (dataset) {
+        dataset.images = dataset.images.filter((image) => image._id !== imageId);
+        await dataset.save();
+      }
+      return success(res, deletedImage, 'Delete image successfully');
+    } catch (err) {
+      return error(res, err, 'Error when delete image');
     }
   },
 };
