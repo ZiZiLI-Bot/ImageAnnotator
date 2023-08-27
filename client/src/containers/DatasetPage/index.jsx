@@ -20,7 +20,7 @@ import ImageAnnotator from 'components/ImageAnnotator';
 import { AuthContext } from 'contexts/Auth.context';
 import dayjs from 'dayjs';
 import { useContext, useEffect, useLayoutEffect, useState } from 'react';
-import { BiPointer, BiPurchaseTag, BiSolidChevronsLeft, BiTrash, BiX, BiZoomIn } from 'react-icons/bi';
+import { BiPointer, BiPurchaseTag, BiSolidChevronsLeft, BiTrash, BiZoomIn } from 'react-icons/bi';
 import { FcAddImage, FcFullTrash } from 'react-icons/fc';
 import { useParams } from 'react-router-dom';
 import DatasetAPI from 'utils/api/Dataset.api';
@@ -162,7 +162,6 @@ export default function DatasetPage() {
 
   useEffect(() => {
     if (ItemsBoundingBox) {
-      console.log(ItemsBoundingBox);
       renderItemsAccordion();
     }
   }, [ItemsBoundingBox]);
@@ -224,13 +223,14 @@ export default function DatasetPage() {
         const createImages = await ImageAPI.createMultipleImages(dataImages);
         console.log(createImages);
         if (createImages?.success) {
-          const ListIdImages = createImages?.data.map((item) => item._id);
+          const listIdCurrentImages = Dataset.images.map((item) => item._id);
+          const ListIdImages = [createImages?.data.map((item) => item._id), ...listIdCurrentImages].flat();
           //Update dataset with images after uploaded
           const updateDataset = await DatasetAPI.updateDataset(id, ListIdImages);
           console.log(updateDataset);
           if (updateDataset?.success) {
             message.success({
-              message: 'Create dataset successfully',
+              message: 'Update image to dataset successfully',
             });
             setTimeout(() => {
               window.location.reload();
@@ -400,7 +400,7 @@ export default function DatasetPage() {
         onClose={() => setOpenDrawerSelectImage(false)}
         open={openDrawerSelectImage}
       >
-        <div className='w-full h-full overflow-auto'>
+        <div className='w-full overflow-auto' style={{ height: 600 }}>
           {Dataset?.images?.map((image) => (
             <Row key={image._id} className='w-full h-32 mt-2 rounded-sm hover:bg-slate-200 transition-colors'>
               <Col span={12} className='flex flex-col items-center justify-center'>
@@ -428,6 +428,54 @@ export default function DatasetPage() {
             </Row>
           ))}
         </div>
+        {Dataset.images?.length > 0 && (
+          <>
+            <CTUpload
+              className='w-full h-36 hover:border-blue-600 mt-2'
+              onChange={(file, formData) => HandleUploadImage(file, formData)}
+            >
+              <div className='w-full h-full flex items-center justify-center my-3'>
+                <FcAddImage size={40} className='group-hover:scale-125 transition-all' />
+              </div>
+              <Text className='text-sm block text-center group-hover:text-blue-600 transition-colors'>
+                Add images to this dataset
+              </Text>
+              <Text className='text-sm block text-center text-gray-400'>
+                Click or drag images to this area to add images
+              </Text>
+            </CTUpload>
+            {UploadImage?.length > 0 && (
+              <>
+                <div
+                  style={{ maxHeight: 300, overflow: 'auto' }}
+                  className='border border-dotted border-gray-600 rounded-md p-4 mt-2 bg-slate-100'
+                >
+                  <Image.PreviewGroup>
+                    <div className='flex flex-wrap'>
+                      {UploadImage.map((image) => (
+                        <>
+                          <Image key={image.uid} src={image.url} width={80} height={80} className='rounded-sm' />
+                          <FcFullTrash
+                            onClick={() => HandleDropImageWhenUpload(image)}
+                            className='hover:bg-gray-200 cursor-pointer -translate-x-6 mt-1 rounded-sm'
+                            size={20}
+                          />
+                        </>
+                      ))}
+                    </div>
+                  </Image.PreviewGroup>
+                </div>
+                <Button
+                  onClick={handleSummitUploadImage}
+                  className='w-full bg-green-600 hover:bg-green-500 text-white mt-2'
+                  type=''
+                >
+                  Upload
+                </Button>
+              </>
+            )}
+          </>
+        )}
       </Drawer>
     </Row>
   );
