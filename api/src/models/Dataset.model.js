@@ -13,12 +13,6 @@ const DatasetSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'Auth',
     },
-    status: {
-      type: String,
-    },
-    publicPermission: {
-      type: String,
-    },
     invites: [{ type: Schema.Types.ObjectId, ref: 'Auth' }],
     images: [{ type: Schema.Types.ObjectId, ref: 'Image' }],
   },

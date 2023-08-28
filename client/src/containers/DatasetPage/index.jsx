@@ -15,7 +15,7 @@ import {
   Typography,
   message,
 } from 'antd';
-import { CTInput, CTUpload } from 'components/CTComponents';
+import { CTCustomObject, CTInput, CTUpload } from 'components/CTComponents';
 import ImageAnnotator from 'components/ImageAnnotator';
 import { AuthContext } from 'contexts/Auth.context';
 import dayjs from 'dayjs';
@@ -53,7 +53,6 @@ export default function DatasetPage() {
   const [Loading, setLoading] = useState(false);
   const [mode, setMode] = useState('addTags');
   const [Dataset, setDataset] = useState([]);
-  const [permission, setPermission] = useState();
   const [ItemsAccordion, setItemsAccordion] = useState([]);
   const [AccordionKey, setAccordionKey] = useState();
   const [ImageActive, setImageActive] = useState();
@@ -61,7 +60,6 @@ export default function DatasetPage() {
   const [UploadImage, setUploadImage] = useState([]);
   const [UploadImageRaw, setUploadImageRaw] = useState([]);
   const [openDrawerSelectImage, setOpenDrawerSelectImage] = useState(false);
-  const [listDescription, setListDescription] = useState([]);
 
   const renderItemsAccordion = () => {
     const items = ItemsBoundingBox?.map((item, idx) => ({
@@ -90,32 +88,17 @@ export default function DatasetPage() {
             value={item?.code}
             onChange={(value) => handleChangeListBoundingBox(value, idx, 'code')}
           />
-          {/* <CTInput
-            className='w-full flex items-center space-x-2'
-            title='Description'
-            value={item?.description}
-            onChange={(value) => handleChangeListBoundingBox(value, idx, 'description')}
-          />
-          <CTInput
-            className='w-full flex items-center space-x-2'
-            title='Origin'
-            value={item?.origin}
-            onChange={(value) => handleChangeListBoundingBox(value, idx, 'origin')}
-          /> */}
 
-          <div className='flex items-center justify-between'>
-            <Space>
-              <Text className='text-base'>Color:</Text>
-              <ColorPicker
-                value={item.color}
-                showText
-                onChange={(value) => handleChangeListBoundingBox(value.toHexString(), idx, 'color')}
-              />
-            </Space>
-            <Button type='' className='bg-green-700 hover:bg-green-600 text-white'>
-              +
-            </Button>
-          </div>
+          <CTCustomObject
+            value={item?.moreInfo}
+            onChange={(value) => handleChangeListBoundingBox(value, idx, 'moreInfo')}
+          />
+
+          <ColorPicker
+            value={item.color}
+            showText
+            onChange={(value) => handleChangeListBoundingBox(value.toHexString(), idx, 'color')}
+          />
         </Space>
       ),
     }));
@@ -145,15 +128,6 @@ export default function DatasetPage() {
       if (dataset?.success) {
         setImageActive(dataset?.data?.images[0]);
         setItemsBoundingBox(dataset?.data?.images[0]?.annotations);
-        if (
-          dataset.data.createBy._id === auth?._id ||
-          dataset.data.invites.includes(auth?._id) ||
-          (dataset.data.status === 'Public' && dataset.data.publicPermission === 'Edit')
-        ) {
-          setPermission('Edit');
-        } else {
-          setPermission('View');
-        }
       }
       setLoading(false);
     };
@@ -164,6 +138,7 @@ export default function DatasetPage() {
     if (ItemsBoundingBox) {
       renderItemsAccordion();
     }
+    console.log(ItemsBoundingBox);
   }, [ItemsBoundingBox]);
 
   const handleDrawBox = (box) => {
@@ -274,12 +249,11 @@ export default function DatasetPage() {
               <Text className='text-base block'>
                 Last Update: {dayjs(ImageActive?.updatedAt).format('hh[h]:mm[m] DD/MM/YYYY')};
               </Text>
-              <Text className='text-base block'>Permission: {permission}</Text>
             </Space>
             <Text className='text-base block mt-4'>Tags:</Text>
             {ItemsAccordion.length > 0 ? (
               <>
-                <div className='overflow-auto' style={{ maxHeight: 350 }}>
+                <div className='overflow-auto relative' style={{ maxHeight: 350 }}>
                   <Collapse
                     accordion
                     activeKey={AccordionKey}

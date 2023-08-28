@@ -3,7 +3,7 @@ import Navbar from 'components/Navbar';
 import { AuthContext } from 'contexts/Auth.context';
 import Cookies from 'js-cookie';
 import { useContext, useLayoutEffect } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import AuthAPI from 'utils/api/Auth.api';
 
 export default function App() {
@@ -20,6 +20,7 @@ export default function App() {
               fullName: res.data.fullName,
               email: res.data.email,
               phoneNumber: res.data.phoneNumber,
+              role: res.data.role,
               token: token,
             });
           } else {

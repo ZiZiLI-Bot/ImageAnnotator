@@ -32,8 +32,6 @@ const { Text, Title } = Typography;
 let initDatasetForm = {
   name: '',
   description: '',
-  status: 'Private',
-  publicPermission: 'View',
   images: [],
   invites: [],
 };
@@ -45,8 +43,7 @@ export default function HomePage() {
   const { setLoginModal } = useContext(LoginModalContext);
   const [loading, setLoading] = useState(false);
   const [MyDataset, setMyDataset] = useState([]);
-  const [PrivateDataset, setPrivateDataset] = useState([]);
-  const [PublicDataset, setPublicDataset] = useState([]);
+  // const [PrivateDataset, setPrivateDataset] = useState([]);
   const [SelectDataset, setSelectDataset] = useState({});
   const [openDownloadDataset, setOpenDownloadDataset] = useState({ isOpen: false, mode: '' });
 
@@ -123,20 +120,9 @@ export default function HomePage() {
     const fetchDataset = async () => {
       setLoading(true);
       if (auth?._id) {
-        const MyDataset = await DatasetAPI.getMyDatasets(auth._id);
+        const MyDataset = await DatasetAPI.getAllDatasets();
         if (MyDataset?.success) {
-          console.log(MyDataset.data);
-          setMyDataset(MyDataset.data.myDatasets);
-          setPrivateDataset(MyDataset.data.sharedDatasets);
-        }
-      }
-      const PublicDataset = await DatasetAPI.getPublicDatasets();
-      if (PublicDataset?.success) {
-        if (auth._id) {
-          const filterPublicDataset = PublicDataset.data.filter((dataset) => dataset.createBy._id !== auth._id);
-          setPublicDataset(filterPublicDataset);
-        } else {
-          setPublicDataset(PublicDataset.data);
+          setMyDataset(MyDataset?.data);
         }
       }
       setLoading(false);
@@ -159,39 +145,44 @@ export default function HomePage() {
     <div className='relative w-full'>
       <span className={styles.main_Background} />
       <div className='py-20 container mx-auto px-16 z-10'>
-        <Row className={`${styles.CreateDataset} hover:border-blue-800`}>
-          <Col
-            span={11}
-            className='flex items-center justify-center flex-col group'
-            onClick={() => handleOpenCreateDataset(true, 'create')}
-          >
-            <FcAddDatabase size={40} className='group-hover:scale-110 transition-all' />
-            <Text className='text-xl group-hover:text-blue-800'>Create your new dataset</Text>
-            <Text className='text-gray-400 mt-1'>
-              {!auth._id ? 'You can an account to create dataset' : 'Click area to create your new dataset'}
-            </Text>
-          </Col>
-          <Col span={2} className='w-full flex justify-center'>
-            <Divider>Or</Divider>
-          </Col>
-          <Col
-            span={11}
-            className='flex items-center justify-center flex-col group'
-            onClick={() => handleOpenCreateDataset(true, 'import')}
-          >
-            <FcUpload size={40} className='group-hover:scale-110 transition-all' />
-            <Text className='text-xl group-hover:text-green-800'>Import dataset</Text>
-            <Text className='text-gray-400 mt-1'>
-              {!auth._id ? 'You can an account to create dataset' : 'Click area to import your dataset'}
-            </Text>
-          </Col>
-        </Row>
+        {auth?.role !== 'user' && (
+          <Row className={`${styles.CreateDataset} hover:border-blue-800`}>
+            <Col
+              span={11}
+              className='flex items-center justify-center flex-col group'
+              onClick={() => handleOpenCreateDataset(true, 'create')}
+            >
+              <FcAddDatabase size={40} className='group-hover:scale-110 transition-all' />
+              <Text className='text-xl group-hover:text-blue-800'>Create your new dataset</Text>
+              <Text className='text-gray-400 mt-1'>
+                {!auth._id ? 'You can an account to create dataset' : 'Click area to create your new dataset'}
+              </Text>
+            </Col>
+            <Col span={2} className='w-full flex justify-center'>
+              <Divider>Or</Divider>
+            </Col>
+            <Col
+              span={11}
+              className='flex items-center justify-center flex-col group'
+              onClick={() => handleOpenCreateDataset(true, 'import')}
+            >
+              <FcUpload size={40} className='group-hover:scale-110 transition-all' />
+              <Text className='text-xl group-hover:text-green-800'>Import dataset</Text>
+              <Text className='text-gray-400 mt-1'>
+                {!auth._id ? 'You can an account to create dataset' : 'Click area to import your dataset'}
+              </Text>
+            </Col>
+          </Row>
+        )}
+
+        <Title className='mt-8' level={2}>
+          Datasets:
+        </Title>
         {!loading ? (
           <>
-            {auth._id && (
-              <div className='mt-8'>
-                <Title level={2}>Your Datasets:</Title>
-                {MyDataset.length > 0 || PrivateDataset.length > 0 ? (
+            {auth._id ? (
+              <div>
+                {MyDataset.length > 0 ? (
                   <Space wrap size='large'>
                     {MyDataset?.map((dataset) => (
                       <Card
@@ -230,108 +221,18 @@ export default function HomePage() {
                         <Text className='block text-gray-500 text-base'>Items: {dataset.images.length} images</Text>
                       </Card>
                     ))}
-                    {PrivateDataset?.map((dataset) => (
-                      <Card
-                        key={dataset._id}
-                        title={
-                          <Space size='small'>
-                            <Text className='text-blue-500 text-lg'>{dataset.name}</Text>
-                            <CTDropdown items={ItemsDataset} useSelect={dataset} setSelect={setSelectDataset}>
-                              <FcSettings cursor='pointer' />
-                            </CTDropdown>
-                            <Tooltip title='Download shuffle dataset'>
-                              <FcInternal
-                                size={20}
-                                cursor='pointer'
-                                onClick={() => {
-                                  setOpenDownloadDataset({ isOpen: true, mode: 'shuffleDownload' });
-                                  setSelectDataset(dataset);
-                                }}
-                              />
-                            </Tooltip>
-                          </Space>
-                        }
-                        extra={
-                          <Link to={`/dataset/${dataset._id}`}>
-                            <Button type='' size='small' className='text-white bg-green-600 hover:bg-green-500'>
-                              Edit
-                            </Button>
-                          </Link>
-                        }
-                        className='w-64 bg-slate-50'
-                      >
-                        <Text className='block text-gray-500 text-base'>Create by: {dataset.createBy.fullName}</Text>
-                        <Text className='block text-gray-500 text-base'>
-                          Create at: {dayjs(dataset.createAt).format('DD/MM/YYYY')}
-                        </Text>
-                        <Text className='block text-gray-500 text-base'>Items: {dataset.images.length} images</Text>
-                      </Card>
-                    ))}
                   </Space>
                 ) : (
                   <div className='flex items-center justify-center'>
-                    <Empty description='You have not created any datasets yet' />
+                    <Empty description='No dataset here yet!' />
                   </div>
                 )}
               </div>
-            )}
-            <div className='mt-8'>
-              <div>
-                <Title level={2}>Public Datasets:</Title>
-                <Text className='text-gray-400'>You can view or edit these datasets, created by other users!</Text>
+            ) : (
+              <div className='flex items-center justify-center'>
+                <Empty description='You need login to view or create dataset!' />
               </div>
-              <Space wrap size='large' className='mt-2'>
-                {PublicDataset?.map((dataset) => (
-                  <Card
-                    key={dataset._id}
-                    title={
-                      <Space size='small'>
-                        <Text className='text-blue-500 text-lg block w-24 line-clamp-1'>{dataset.name}</Text>
-                        <CTDropdown
-                          useSelect={dataset}
-                          setSelect={setSelectDataset}
-                          items={dataset?.createBy?._id === auth?._id ? ItemsMyDataset : ItemsDataset}
-                        >
-                          <FcSettings cursor='pointer' />
-                        </CTDropdown>
-                        <Tooltip title='Download shuffle dataset'>
-                          <FcInternal
-                            size={20}
-                            cursor='pointer'
-                            onClick={() => {
-                              setOpenDownloadDataset({ isOpen: true, mode: 'shuffleDownload' });
-                              setSelectDataset(dataset);
-                            }}
-                          />
-                        </Tooltip>
-                      </Space>
-                    }
-                    extra={
-                      <Link to={`/dataset/${dataset._id}`}>
-                        <Button
-                          type=''
-                          size='small'
-                          className={`text-white ${
-                            dataset.publicPermission === 'View'
-                              ? 'bg-yellow-600 hover:bg-yellow-500'
-                              : 'bg-green-600 hover:bg-green-500'
-                          }`}
-                        >
-                          {dataset.publicPermission}
-                        </Button>
-                      </Link>
-                    }
-                    className='w-64 bg-slate-50'
-                  >
-                    <Text className='block text-gray-500 text-base'>Create by: {dataset.createBy.fullName}</Text>
-                    <Text className='block text-gray-500 text-base'>
-                      Create at: {dayjs(dataset.createAt).format('DD/MM/YYYY')}
-                    </Text>
-                    <Text className='block text-gray-500 text-base'>Items: {dataset.images.length} images</Text>
-                  </Card>
-                ))}
-              </Space>
-            </div>
+            )}
           </>
         ) : (
           <>
@@ -407,7 +308,6 @@ const ModalCreateDataset = ({ setModalState, open, loading, setLoading, auth, se
   const [formDataset, setFormDataset] = useState(initDatasetForm);
   const [imagesList, setImagesList] = useState([]);
   const [rawFileList, setRawFileList] = useState([]);
-  const [statusNewDataset, setStatusNewDataset] = useState('Private');
   const [ListUsers, setListUsers] = useState([]);
   const [listInvites, setListInvites] = useState([]);
   const [agree, setAgree] = useState(false);
@@ -505,18 +405,13 @@ const ModalCreateDataset = ({ setModalState, open, loading, setLoading, auth, se
     setFormDataset(initDatasetForm);
     setImagesList([]);
     setRawFileList([]);
-    setStatusNewDataset('Private');
+    // setStatusNewDataset('Private');
     setAgree(false);
   };
 
   const HandleOnChangeCreate = (filed, value) => {
     if (validate.filed !== '') setValidate({ filed: '', message: '' });
     switch (filed) {
-      case 'status': {
-        setStatusNewDataset(value);
-        setFormDataset({ ...formDataset, [filed]: value });
-        break;
-      }
       case 'invites': {
         setListInvites(value);
         const listInvites = value.map((item) => item.split('-')[1]);
@@ -604,33 +499,6 @@ const ModalCreateDataset = ({ setModalState, open, loading, setLoading, auth, se
               error={validate.filed === 'description'}
               value={formDataset.description}
               onChange={(value) => HandleOnChangeCreate('description', value)}
-            />
-          </Col>
-          <Col span={12}>
-            <CTInput
-              className='w-full px-1 py-1'
-              mode='select'
-              selectOptions={[
-                { label: 'Private', value: 'Private' },
-                { label: 'Public', value: 'Public' },
-              ]}
-              value={formDataset.status}
-              title='Status Dataset'
-              onChange={(value) => HandleOnChangeCreate('status', value)}
-            />
-          </Col>
-          <Col span={12}>
-            <CTInput
-              className='w-full px-1 py-1'
-              mode='select'
-              selectOptions={[
-                { label: 'View', value: 'View' },
-                { label: 'Edit', value: 'Edit' },
-              ]}
-              value={formDataset.publicPermission}
-              title='Public user permission'
-              disabled={statusNewDataset === 'Private'}
-              onChange={(value) => HandleOnChangeCreate('publicPermission', value)}
             />
           </Col>
           <Col span={24}>

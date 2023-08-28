@@ -4,13 +4,11 @@ import { error, success } from '../utils/Response';
 const DatasetController = {
   createDataset: async (req, res) => {
     try {
-      const { name, description, createBy, status, publicPermission, invites, images } = req.body;
+      const { name, description, createBy, invites, images } = req.body;
       const newDataset = new DatasetModel({
         name,
         description,
         createBy,
-        status,
-        publicPermission,
         invites,
         images,
       });

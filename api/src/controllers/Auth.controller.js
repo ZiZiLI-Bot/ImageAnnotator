@@ -5,7 +5,7 @@ import { error, success } from '../utils/Response';
 
 const AuthController = {
   register: async (req, res) => {
-    const { email, password, fullName, phoneNumber } = req.body;
+    const { email, password, fullName, phoneNumber, role } = req.body;
     const reqUser = await AuthModule.findOne({ email });
     if (reqUser) {
       error(res, null, 'Email already exist');
@@ -14,6 +14,7 @@ const AuthController = {
       AuthModule.create({
         email,
         password: hashPassword,
+        role: role === 'admin' ? 'user' : role,
         fullName,
         phoneNumber,
       })
@@ -51,6 +52,7 @@ const AuthController = {
       email: user.email,
       phoneNumber: user.phoneNumber,
       createdAt: user.createdAt,
+      role: user.role,
       updatedAt: user.updatedAt,
     };
     return success(res, data, 'Login successful');

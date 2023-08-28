@@ -17,7 +17,8 @@ const UploadController = {
           url: `http://${req.headers.host}/file/${file.size + '_' + file.originalFilename}`,
           name: file.originalFilename,
         });
-        await fs.rename(file.filepath, targetPath);
+        await fs.copyFile(file.filepath, targetPath);
+        await fs.unlink(file.filepath);
       });
       return success(res, newURL, 'Files uploaded successfully');
     });

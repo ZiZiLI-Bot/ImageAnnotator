@@ -7,6 +7,11 @@ const AuthSchema = new Schema(
       type: String,
       required: true,
     },
+    role: {
+      type: String,
+      enum: ['admin', 'professional', 'user'],
+      default: 'user',
+    },
     password: {
       type: String,
       required: true,

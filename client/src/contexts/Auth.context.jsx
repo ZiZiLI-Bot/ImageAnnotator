@@ -4,6 +4,7 @@ const AuthContext = createContext();
 const initValue = {
   _id: '',
   fullName: '',
+  role: '',
   email: '',
   phoneNumber: '',
   token: '',

@@ -1,14 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Avatar, Button, Col, Modal, Row, Segmented, Space, Typography, notification } from 'antd';
 import { CTDropdown, CTInput } from 'components/CTComponents';
-import { NAVBAR_LINKS } from 'constants/Navbar';
 import { AuthContext } from 'contexts/Auth.context';
 import { LoginModalContext } from 'contexts/LoginModal.context';
 import Cookies from 'js-cookie';
 import { useContext, useEffect, useState } from 'react';
 import { BiLogInCircle, BiUser, BiUserCircle, BiUserPlus } from 'react-icons/bi';
 import { MdKey, MdOutlineMail, MdPhoneIphone } from 'react-icons/md';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import AuthAPI from 'utils/api/Auth.api';
 import illustrationsLogin from '../../assets/illustrationsLogin.svg';
 import illustrationsRG from '../../assets/illustrationsRG.svg';
@@ -35,7 +34,6 @@ const registerForm = {
 export default function Navbar() {
   const { loginModal, setLoginModal } = useContext(LoginModalContext);
   const { auth, setAuth } = useContext(AuthContext);
-  const navigate = useNavigate();
   const HandleModalLogin = (mode) => {
     setLoginModal({
       isOpen: true,
@@ -49,6 +47,7 @@ export default function Navbar() {
       fullName: '',
       email: '',
       phoneNumber: '',
+      role: '',
       token: '',
     });
     Cookies.remove('token');
@@ -98,19 +97,43 @@ export default function Navbar() {
       icon: <BiLogInCircle className='text-green-900' size={20} />,
     },
   ];
+
+  const ADMIN_OPTIONS = [
+    {
+      key: '1',
+      label: (
+        <Text className='text-green-900 text-base' onClick={() => HandleModalLogin('Professional Account')}>
+          Professional Account
+        </Text>
+      ),
+      icon: <BiUserCircle className='text-green-900' size={20} />,
+    },
+    {
+      key: '2',
+      label: (
+        <Text className='text-green-900 text-base' onClick={handleLogout}>
+          Logout
+        </Text>
+      ),
+      icon: <BiLogInCircle className='text-green-900' size={20} />,
+    },
+  ];
+
+  const detectOption = () => {
+    if (!auth._id) return NOT_LOGIN;
+    if (auth.role === 'admin') {
+      return ADMIN_OPTIONS;
+    } else {
+      return USER_LOGIN;
+    }
+  };
   return (
     <Row className='absolute w-9/12 h-20 flex items-center justify-between top-0 left-1/2 -translate-x-1/2 z-10'>
       <Link to='/'>
         <Title>I/A</Title>
       </Link>
       <Space size={120} className='items-end'>
-        {/* {NAVBAR_LINKS.map((link) => (
-          <Link key={link.key} to={link.path} className='text-lg'>
-            {link.label}
-          </Link>
-        ))} */}
-
-        <CTDropdown items={auth._id ? USER_LOGIN : NOT_LOGIN}>
+        <CTDropdown items={detectOption()}>
           <Avatar
             className={`cursor-pointer flex justify-center items-center ${auth._id ? 'bg-green-600' : 'bg-gray-300'}`}
             size={45}
@@ -120,15 +143,13 @@ export default function Navbar() {
           </Avatar>
         </CTDropdown>
       </Space>
-      {!auth._id && (
-        <ModalLogin
-          open={loginModal.isOpen}
-          modalState={loginModal}
-          setModalState={setLoginModal}
-          auth={auth}
-          setAuth={setAuth}
-        />
-      )}
+      <ModalLogin
+        open={loginModal.isOpen}
+        modalState={loginModal}
+        setModalState={setLoginModal}
+        auth={auth}
+        setAuth={setAuth}
+      />
     </Row>
   );
 }
@@ -236,6 +257,7 @@ const ModalLogin = ({ open, modalState, setModalState, setAuth }) => {
             fullName: res.data.fullName,
             email: res.data.email,
             phoneNumber: res.data.phoneNumber,
+            role: res.data.role,
             token: res.data.token,
           });
           Cookies.set('token', res.data.token, { expires: 7 });
@@ -292,6 +314,48 @@ const ModalLogin = ({ open, modalState, setModalState, setAuth }) => {
         break;
       }
 
+      case 'registerPro': {
+        for (const [key, value] of Object.entries(registerForm)) {
+          if (value === '') {
+            setValidate({ filed: key, message: 'This field is required' });
+            return;
+          }
+          if (key === 'password' && value.length < 6) {
+            setValidate({ filed: key, message: 'Password must be at least 6 characters' });
+            return;
+          }
+          if (key === 'confirmPassword' && value !== registerForm.password) {
+            setValidate({ filed: key, message: 'Confirm password not match' });
+            return;
+          }
+          if (key === 'email' && !isValidEmail(value)) {
+            setValidate({ filed: key, message: 'Invalid email' });
+            return;
+          }
+        }
+        setLoading(true);
+        registerForm.role = 'professional';
+        const res = await AuthAPI.register(registerForm);
+        if (res?.success) {
+          notification.success({
+            message: 'Register success',
+            description: 'You can login now!',
+            duration: 2,
+            placement: 'topRight',
+          });
+          // setModalState({ isOpen: true, mode: 'Account Login' });
+        } else {
+          notification.error({
+            message: 'Register failed',
+            description: res?.message,
+            duration: 2,
+            placement: 'topRight',
+          });
+        }
+        setLoading(false);
+        break;
+      }
+
       default:
         break;
     }
@@ -314,12 +378,14 @@ const ModalLogin = ({ open, modalState, setModalState, setAuth }) => {
         </Col>
         <Col span={14}>
           <div className='mt-3 w-full'>
-            <Segmented
-              block
-              options={['Account Login', 'Register Account']}
-              value={modalState.mode}
-              onChange={(value) => setModalState({ ...modalState, mode: value })}
-            />
+            {!modalState.mode === 'Professional Account' && (
+              <Segmented
+                block
+                options={['Account Login', 'Register Account']}
+                value={modalState.mode}
+                onChange={(value) => setModalState({ ...modalState, mode: value })}
+              />
+            )}
             {modalState.mode === 'Account Login' ? (
               <div className='w-full mt-3'>
                 <div>
@@ -397,16 +463,20 @@ const ModalLogin = ({ open, modalState, setModalState, setAuth }) => {
                       className='w-full text-white bg-green-600 hover:bg-green-500'
                       type=''
                       loading={loading}
-                      onClick={() => handleSubmit('register')}
+                      onClick={() =>
+                        handleSubmit(modalState.mode === 'Professional Account' ? 'registerPro' : 'register')
+                      }
                     >
                       Register
                     </Button>
-                    <Text
-                      className='text-right block w-full cursor-pointer mt-1 text-gray-500'
-                      onClick={() => setModalState({ ...modalState, mode: 'Account Login' })}
-                    >
-                      Already have an account?
-                    </Text>
+                    {!modalState.mode === 'Professional Account' && (
+                      <Text
+                        className='text-right block w-full cursor-pointer mt-1 text-gray-500'
+                        onClick={() => setModalState({ ...modalState, mode: 'Account Login' })}
+                      >
+                        Already have an account?
+                      </Text>
+                    )}
                   </div>
                 </div>
               </Row>

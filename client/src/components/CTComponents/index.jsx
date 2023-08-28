@@ -1,5 +1,5 @@
-import { Dropdown, Input, Select } from 'antd';
-import { useRef } from 'react';
+import { Button, Col, Dropdown, Input, Row, Select, Space } from 'antd';
+import { useEffect, useRef, useState } from 'react';
 
 export function CTDropdown({ items, render, children, useSelect, setSelect }) {
   return (
@@ -120,3 +120,65 @@ export function CTInput({
     }
   }
 }
+
+export const CTCustomObject = ({ onChange, value }) => {
+  const [fields, setFields] = useState(value);
+
+  useEffect(() => {
+    onChange(fields);
+  }, [fields]);
+
+  const handleOnChange = (value, index, key) => {
+    if (!fields) {
+      setFields([{ key: 0, values: ['', ''] }]);
+    } else {
+      const newFields = [...fields];
+      newFields[index].values[key] = value;
+      setFields(newFields);
+    }
+  };
+  return (
+    <>
+      {fields?.map((des, idx) => (
+        <Row key={des.id} className='my-2'>
+          <Col span={10}>
+            <CTInput value={des?.values[0]} onChange={(value) => handleOnChange(value, idx, 0)} />
+          </Col>
+          <Col span={1} className='flex items-center justify-center'>
+            :
+          </Col>
+          <Col span={13}>
+            <CTInput
+              className='w-full flex items-center space-x-2'
+              value={des?.values[1]}
+              onChange={(value) => handleOnChange(value, idx, 1)}
+            />
+          </Col>
+        </Row>
+      ))}
+      <Space className='float-right'>
+        {fields?.length > 0 && (
+          <Button
+            danger
+            type=''
+            className='bg-red-600 hover:bg-red-500 text-white'
+            onClick={() => setFields((pre) => (pre ? pre.slice(0, pre.length - 1) : []))}
+          >
+            -
+          </Button>
+        )}
+        <Button
+          type=''
+          className='bg-green-600 hover:bg-green-500 text-white'
+          onClick={() =>
+            setFields((pre) =>
+              pre ? [...pre, { key: pre?.length, values: ['', ''] }] : [{ key: 0, values: ['', ''] }],
+            )
+          }
+        >
+          +
+        </Button>
+      </Space>
+    </>
+  );
+};
