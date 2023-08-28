@@ -17,7 +17,7 @@ export function CTDropdown({ items, render, children, useSelect, setSelect }) {
   );
 }
 
-export function CTUpload({ children, className, styles, onChange, accept }) {
+export function CTUpload({ children, className, styles, onChange, accept, multiple }) {
   const InputRef = useRef(null);
 
   const handleOnChange = (files) => {
@@ -43,7 +43,7 @@ export function CTUpload({ children, className, styles, onChange, accept }) {
           onDrop={(e) => handleOnDrag(e.dataTransfer.files, 1)}
           type='file'
           accept={accept}
-          multiple
+          multiple={multiple}
           onChange={(e) => handleOnChange(e.target.files)}
           className='w-full h-full absolute top-0 left-0 opacity-0 cursor-pointer z-10'
           ref={InputRef}

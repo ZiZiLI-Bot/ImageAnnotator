@@ -447,7 +447,8 @@ const ModalCreateDataset = ({ setModalState, open, loading, setLoading, auth, se
         onCancel={() => setModalState(false)}
       >
         <CTUpload
-          accept='image/*'
+          accept={['image/png', 'image/jpeg', 'image/jpg', 'image/webp']}
+          multiple={true}
           className='w-full h-32 hover:border-blue-600'
           onChange={(file, formData) => handleUploadFile(file, formData)}
         >
@@ -542,7 +543,7 @@ const ModalCreateDataset = ({ setModalState, open, loading, setLoading, auth, se
         onCancel={() => setModalState(false)}
       >
         <CTUpload
-          accept='*'
+          multiple={true}
           className='w-full h-32 hover:border-blue-600'
           onChange={(file, formData) => handleUploadFile(file, formData)}
         >

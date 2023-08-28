@@ -1,5 +1,6 @@
 import App from 'containers/App';
 import DatasetPage from 'containers/DatasetPage';
+import DetectPage from 'containers/DetectPage';
 import HomePage from 'containers/HomePage';
 import LandingPage from 'containers/LandingPage';
 import { createBrowserRouter } from 'react-router-dom';
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
       {
         path: '/dataset/:id',
         element: <DatasetPage />,
+      },
+      {
+        path: '/detect',
+        element: <DetectPage />,
       },
     ],
   },

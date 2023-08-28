@@ -297,6 +297,8 @@ export default function DatasetPage() {
                 ) : (
                   <div className='w-1/3 h-32'>
                     <CTUpload
+                      accept={['image/png', 'image/jpeg', 'image/jpg', 'image/webp']}
+                      multiple={true}
                       className='w-full h-full hover:border-blue-600'
                       onChange={(file, formData) => HandleUploadImage(file, formData)}
                     >
@@ -405,6 +407,8 @@ export default function DatasetPage() {
         {Dataset.images?.length > 0 && (
           <>
             <CTUpload
+              accept={['image/png', 'image/jpeg', 'image/jpg', 'image/webp']}
+              multiple={true}
               className='w-full h-36 hover:border-blue-600 mt-2'
               onChange={(file, formData) => HandleUploadImage(file, formData)}
             >
