@@ -276,8 +276,8 @@ const ModalDownloadDataset = ({ open, setModalState, loading, setLoading, datase
   return (
     <Modal
       footer={[
-        <Button key='Cancer' type='default' danger>
-          Cancer
+        <Button key='Cancel' type='default' danger>
+          Cancel
         </Button>,
       ]}
       title={
