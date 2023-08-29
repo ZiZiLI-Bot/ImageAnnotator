@@ -18,9 +18,9 @@ import { CTDropdown, CTInput, CTUpload } from 'components/CTComponents';
 import { AuthContext } from 'contexts/Auth.context';
 import { LoginModalContext } from 'contexts/LoginModal.context';
 import dayjs from 'dayjs';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useLayoutEffect, useState } from 'react';
 import { FcAddDatabase, FcAddImage, FcFullTrash, FcInternal, FcSettings, FcUpload } from 'react-icons/fc';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthAPI from 'utils/api/Auth.api';
 import DatasetAPI from 'utils/api/Dataset.api';
 import ImageAPI from 'utils/api/Image.api';
@@ -37,13 +37,14 @@ let initDatasetForm = {
 };
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const [refresh, setRefresh] = useState(false);
   const [openCreateDataset, setOpenCreateDataset] = useState({ isOpen: false, mode: '' });
   const { auth } = useContext(AuthContext);
   const { setLoginModal } = useContext(LoginModalContext);
   const [loading, setLoading] = useState(false);
   const [MyDataset, setMyDataset] = useState([]);
-  // const [PrivateDataset, setPrivateDataset] = useState([]);
+  const [invitesDataset, setInvitesDataset] = useState([]);
   const [SelectDataset, setSelectDataset] = useState({});
   const [openDownloadDataset, setOpenDownloadDataset] = useState({ isOpen: false, mode: '' });
 
@@ -116,13 +117,24 @@ export default function HomePage() {
     },
   ];
 
+  useLayoutEffect(() => {
+    console.log(auth);
+    if (!auth._id || auth.role === 'user') {
+      navigate('/');
+    }
+  }, [auth]);
+
   useEffect(() => {
     const fetchDataset = async () => {
       setLoading(true);
       if (auth?._id) {
-        const MyDataset = await DatasetAPI.getAllDatasets();
+        const MyDataset = await DatasetAPI.getDatasetByCreateId(auth._id);
         if (MyDataset?.success) {
           setMyDataset(MyDataset?.data);
+        }
+        const InvitesDataset = await DatasetAPI.getDatasetMeInvite(auth._id);
+        if (InvitesDataset?.success) {
+          setInvitesDataset(InvitesDataset?.data);
         }
       }
       setLoading(false);
@@ -145,44 +157,42 @@ export default function HomePage() {
     <div className='relative w-full'>
       <span className={styles.main_Background} />
       <div className='py-20 container mx-auto px-16 z-10'>
-        {auth?.role !== 'user' && (
-          <Row className={`${styles.CreateDataset} hover:border-blue-800`}>
-            <Col
-              span={11}
-              className='flex items-center justify-center flex-col group'
-              onClick={() => handleOpenCreateDataset(true, 'create')}
-            >
-              <FcAddDatabase size={40} className='group-hover:scale-110 transition-all' />
-              <Text className='text-xl group-hover:text-blue-800'>Create your new dataset</Text>
-              <Text className='text-gray-400 mt-1'>
-                {!auth._id ? 'You can an account to create dataset' : 'Click area to create your new dataset'}
-              </Text>
-            </Col>
-            <Col span={2} className='w-full flex justify-center'>
-              <Divider>Or</Divider>
-            </Col>
-            <Col
-              span={11}
-              className='flex items-center justify-center flex-col group'
-              onClick={() => handleOpenCreateDataset(true, 'import')}
-            >
-              <FcUpload size={40} className='group-hover:scale-110 transition-all' />
-              <Text className='text-xl group-hover:text-green-800'>Import dataset</Text>
-              <Text className='text-gray-400 mt-1'>
-                {!auth._id ? 'You can an account to create dataset' : 'Click area to import your dataset'}
-              </Text>
-            </Col>
-          </Row>
-        )}
+        <Row className={`${styles.CreateDataset} hover:border-blue-800`}>
+          <Col
+            span={11}
+            className='flex items-center justify-center flex-col group'
+            onClick={() => handleOpenCreateDataset(true, 'create')}
+          >
+            <FcAddDatabase size={40} className='group-hover:scale-110 transition-all' />
+            <Text className='text-xl group-hover:text-blue-800'>Create your new dataset</Text>
+            <Text className='text-gray-400 mt-1'>
+              {!auth._id ? 'You can an account to create dataset' : 'Click area to create your new dataset'}
+            </Text>
+          </Col>
+          <Col span={2} className='w-full flex justify-center'>
+            <Divider>Or</Divider>
+          </Col>
+          <Col
+            span={11}
+            className='flex items-center justify-center flex-col group'
+            onClick={() => handleOpenCreateDataset(true, 'import')}
+          >
+            <FcUpload size={40} className='group-hover:scale-110 transition-all' />
+            <Text className='text-xl group-hover:text-green-800'>Import dataset</Text>
+            <Text className='text-gray-400 mt-1'>
+              {!auth._id ? 'You can an account to create dataset' : 'Click area to import your dataset'}
+            </Text>
+          </Col>
+        </Row>
 
         <Title className='mt-8' level={2}>
-          Datasets:
+          My Datasets:
         </Title>
         {!loading ? (
           <>
             {auth._id ? (
               <div>
-                {MyDataset.length > 0 ? (
+                {MyDataset?.length > 0 ? (
                   <Space wrap size='large'>
                     {MyDataset?.map((dataset) => (
                       <Card
@@ -241,6 +251,54 @@ export default function HomePage() {
             </div>
           </>
         )}
+        <Title className='mt-8' level={2}>
+          Invites Datasets:
+        </Title>
+        {invitesDataset?.length > 0 ? (
+          <Space>
+            {invitesDataset?.map((dataset) => (
+              <Card
+                key={dataset._id}
+                title={
+                  <Space size='small'>
+                    <Text className='text-blue-500 text-lg'>{dataset.name}</Text>
+                    <CTDropdown items={ItemsDataset} useSelect={dataset} setSelect={setSelectDataset}>
+                      <FcSettings cursor='pointer' />
+                    </CTDropdown>
+                    <Tooltip title='Download shuffle dataset'>
+                      <FcInternal
+                        size={20}
+                        cursor='pointer'
+                        onClick={() => {
+                          setOpenDownloadDataset({ isOpen: true, mode: 'shuffleDownload' });
+                          setSelectDataset(dataset);
+                        }}
+                      />
+                    </Tooltip>
+                  </Space>
+                }
+                extra={
+                  <Link to={`/dataset/${dataset._id}`}>
+                    <Button type='' size='small' className='text-white bg-green-600 hover:bg-green-500'>
+                      Edit
+                    </Button>
+                  </Link>
+                }
+                className='w-64 bg-slate-50'
+              >
+                <Text className='block text-gray-500 text-base'>Create by: {dataset.createBy.fullName}</Text>
+                <Text className='block text-gray-500 text-base'>
+                  Create at: {dayjs(dataset.createAt).format('DD/MM/YYYY')}
+                </Text>
+                <Text className='block text-gray-500 text-base'>Items: {dataset.images.length} images</Text>
+              </Card>
+            ))}
+          </Space>
+        ) : (
+          <div className='flex items-center justify-center'>
+            <Empty description='No dataset you are invited!' />
+          </div>
+        )}
       </div>
       <ModalCreateDataset
         open={openCreateDataset}
@@ -261,7 +319,7 @@ export default function HomePage() {
   );
 }
 
-const ModalDownloadDataset = ({ open, setModalState, loading, setLoading, dataset }) => {
+const ModalDownloadDataset = ({ open, setModalState, dataset }) => {
   const HandleDownloadDataset = async () => {
     const fileName = dataset?.name + dataset._id + '.json';
     const jsonString = JSON.stringify(dataset);
@@ -319,7 +377,9 @@ const ModalCreateDataset = ({ setModalState, open, loading, setLoading, auth, se
         setLoading(true);
         const res = await AuthAPI.getAllUsers(auth._id);
         if (res?.success) {
-          const listUsers = res.data.map((user) => ({ label: user.fullName, value: `${user.fullName}-${user._id}` }));
+          const listUsers = res.data
+            .filter((user) => user.role !== 'user')
+            .map((user) => ({ label: user.fullName, value: `${user.fullName}-${user._id}` }));
           setListUsers(listUsers);
           setLoading(false);
         }
@@ -509,7 +569,7 @@ const ModalCreateDataset = ({ setModalState, open, loading, setLoading, auth, se
               selectMode='multiple'
               selectOptions={ListUsers}
               loading={loading}
-              title='Invite users'
+              title='Invite professionals'
               value={listInvites}
               onChange={(value) => HandleOnChangeCreate('invites', value)}
             />

@@ -8,14 +8,14 @@ const DatasetAPI = {
   getAllDatasets: async () => {
     return await AxiosClient.get(API_ENDPOINTS.GET_ALL_DATASETS);
   },
+  getDatasetByCreateId: async (userId) => {
+    return await AxiosClient.get(`${API_ENDPOINTS.GET_DATASET_BY_CREATE_ID}/${userId}`);
+  },
+  getDatasetMeInvite: async (userId) => {
+    return await AxiosClient.get(`${API_ENDPOINTS.GET_DATASET_ME_INVITE}/${userId}`);
+  },
   getDatasetById: async (datasetId) => {
-    return await AxiosClient.get(`${API_ENDPOINTS.GET_DATASET_WITH_DATASET_ID}/${datasetId}`);
-  },
-  getMyDatasets: async (userId) => {
-    return await AxiosClient.get(`${API_ENDPOINTS.GET_DATASET_WITH_ID}/${userId}`);
-  },
-  getPublicDatasets: async () => {
-    return await AxiosClient.get(API_ENDPOINTS.GET_PUBLIC_DATASETS);
+    return await AxiosClient.get(`${API_ENDPOINTS.GET_DATASET_BY_ID}/${datasetId}`);
   },
   updateDataset: async (_id, data) => {
     return await AxiosClient.put(API_ENDPOINTS.UPDATE_DATASET, { _id, images: data });

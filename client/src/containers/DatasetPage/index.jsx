@@ -102,7 +102,6 @@ export default function DatasetPage() {
         </Space>
       ),
     }));
-    // console.log(items);
     setItemsAccordion(items);
   };
 
@@ -124,7 +123,6 @@ export default function DatasetPage() {
       setLoading(true);
       const dataset = await DatasetAPI.getDatasetById(id);
       setDataset(dataset?.data);
-      console.log(dataset);
       if (dataset?.success) {
         setImageActive(dataset?.data?.images[0]);
         setItemsBoundingBox(dataset?.data?.images[0]?.annotations);
@@ -381,7 +379,7 @@ export default function DatasetPage() {
             <Row key={image._id} className='w-full h-32 mt-2 rounded-sm hover:bg-slate-200 transition-colors'>
               <Col span={12} className='flex flex-col items-center justify-center'>
                 <Image crossOrigin='anonymous' src={image.url} width={100} height={100} />
-                <Text className='text-xs block'>{image.name}</Text>
+                <Text className='text-xs block line-clamp-1'>{image.name}</Text>
               </Col>
               <Col span={12} className='flex items-center justify-center'>
                 <Space direction='vertical'>

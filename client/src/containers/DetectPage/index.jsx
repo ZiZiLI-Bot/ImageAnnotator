@@ -1,9 +1,12 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Button, Col, Drawer, Image, Row, Segmented, Space, Typography } from 'antd';
 import { CTUpload } from 'components/CTComponents';
+import { AuthContext } from 'contexts/Auth.context';
 import dayjs from 'dayjs';
-import { useLayoutEffect, useState } from 'react';
+import { useContext, useLayoutEffect, useState } from 'react';
 import { BiChevronsRight } from 'react-icons/bi';
 import { FcAddImage, FcFlashOn, FcMindMap, FcPrevious } from 'react-icons/fc';
+import { useNavigate } from 'react-router-dom';
 
 const { Text } = Typography;
 
@@ -40,6 +43,8 @@ const options = [
 ];
 
 export default function DetectPage() {
+  const navigate = useNavigate();
+  const { auth } = useContext(AuthContext);
   const [FullView, setFullView] = useState(localStorage.getItem('fullView') === 'true');
   const [openDrawer, setOpenDrawer] = useState(false);
   const [model, setModel] = useState('yolov6');
@@ -47,8 +52,11 @@ export default function DetectPage() {
   const [visible, setVisible] = useState(false);
 
   useLayoutEffect(() => {
+    if (!auth._id) {
+      navigate('/');
+    }
     localStorage.setItem('fullView', FullView);
-  }, [FullView]);
+  }, [FullView, auth]);
 
   const handleLoadImage = (file, formData) => {
     console.log(file, formData);
@@ -71,7 +79,7 @@ export default function DetectPage() {
           {image ? (
             <Row style={{ height: '85vh' }}>
               <Col span={11} className='flex flex-col items-center justify-center'>
-                <img className='w-2/3 rounded-md' src={image[0].url} alt='Image' />
+                <img className='w-3/4 rounded-md' src={image[0].url} alt='Image' />
                 <Button className='mt-1' onClick={() => setVisible(true)}>
                   Preview
                 </Button>
@@ -100,7 +108,7 @@ export default function DetectPage() {
                 >
                   Detect
                 </Button>
-                <img className='w-2/3 rounded-md grayscale' src={image[0].url} alt='Image' />
+                <img className='w-3/4 rounded-md grayscale' src={image[0].url} alt='Image' />
               </Col>
             </Row>
           ) : (
@@ -116,10 +124,10 @@ export default function DetectPage() {
                     <FcAddImage size={40} className='group-hover:scale-125 transition-all' />
                   </div>
                   <Text className='text-sm block text-center group-hover:text-blue-600 transition-colors'>
-                    There are no images in this dataset
+                    Upload your image
                   </Text>
                   <Text className='text-sm block text-center text-gray-400'>
-                    Click or drag images to this area to start create dataset
+                    One state only support single image with format: png, jpg, jpeg, webp
                   </Text>
                 </CTUpload>
               </div>

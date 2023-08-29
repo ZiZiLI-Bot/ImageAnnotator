@@ -60,34 +60,33 @@ const DatasetController = {
       return error(res, err, 'Error when get all dataset');
     }
   },
-  getDatasetWithPermissions: async (req, res) => {
+
+  getDatasetMeInvite: async (req, res) => {
     try {
       const { userId } = req.params;
-      const myDatasets = await DatasetModel.find({ createBy: userId })
+      const Datasets = await DatasetModel.find({ invites: userId })
         .populate('createBy')
         .populate('invites')
         .populate('images');
-      const sharedDatasets = await DatasetModel.find({ invites: userId })
-        .populate('createBy')
-        .populate('invites')
-        .populate('images');
-      const Datasets = { myDatasets: myDatasets, sharedDatasets: sharedDatasets };
       return success(res, Datasets, 'Get dataset successfully');
     } catch (err) {
       return error(res, err, 'Error when get all dataset');
     }
   },
-  getPublicDataset: async (req, res) => {
+
+  getDatasetByCreateId: async (req, res) => {
     try {
-      const Datasets = await DatasetModel.find({ status: 'Public' })
+      const { userId } = req.params;
+      const Datasets = await DatasetModel.find({ createBy: userId })
         .populate('createBy')
         .populate('invites')
         .populate('images');
-      return success(res, Datasets, 'Get public dataset successfully');
+      return success(res, Datasets, 'Get dataset successfully');
     } catch (err) {
       return error(res, err, 'Error when get all dataset');
     }
   },
+
   dropDataset: async (req, res) => {
     try {
       const { datasetId } = req.params;

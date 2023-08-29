@@ -1,11 +1,42 @@
-import { Button, Col, Row, Space, Typography } from 'antd';
+import { Button, Col, Row, Space, Typography, notification } from 'antd';
+import { AuthContext } from 'contexts/Auth.context';
+import { LoginModalContext } from 'contexts/LoginModal.context';
+import { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import illustrationsLD from '../../assets/illustrationsLD.svg';
 import styles from './LandingPage.module.css';
-import { Link } from 'react-router-dom';
 
 const { Text } = Typography;
 
 export default function LandingPage() {
+  const { auth } = useContext(AuthContext);
+  const { setLoginModal } = useContext(LoginModalContext);
+  const navigate = useNavigate();
+  const navigateToTraining = () => {
+    if (!auth._id) {
+      notification.warning({ message: 'You need login to continue!' });
+      setLoginModal({ isOpen: true, mode: 'Account Login' });
+      return;
+    }
+    if (auth.role === 'user') {
+      notification.warning({
+        message: 'You do not have permission to access training!',
+        description: 'Please contact admin to get more info!',
+      });
+      return;
+    }
+    navigate('/training');
+  };
+
+  const navigateToDetect = () => {
+    console.log(auth);
+    if (!auth._id) {
+      notification.warning({ message: 'You need login to continue!' });
+      setLoginModal({ isOpen: true, mode: 'Account Login' });
+      return;
+    }
+    navigate('/detect');
+  };
   return (
     <div className={styles.main}>
       <Row className='container mx-auto px-12 pt-20 h-full'>
@@ -13,19 +44,14 @@ export default function LandingPage() {
           <div style={{ maxWidth: 670 }}>
             <Text className='text-3xl font-bold block'>Image Annotator</Text>
             <Text className={styles.landingText}>Label training and detect electronic components through images.</Text>
-            <Text className={styles.landingText}>Using YOLOv8 model.</Text>
           </div>
           <Space>
-            <Link to='/detect'>
-              <Button className='mt-8 bg-blue-500' type='primary' size='large'>
-                Detect Component
-              </Button>
-            </Link>
-            <Link to='/home'>
-              <Button className='mt-8 bg-blue-500' type='primary' size='large'>
-                Label training
-              </Button>
-            </Link>
+            <Button className='mt-8 bg-blue-500' type='primary' size='large' onClick={navigateToDetect}>
+              Detect Component
+            </Button>
+            <Button className='mt-8 bg-blue-500' type='primary' size='large' onClick={navigateToTraining}>
+              Label training
+            </Button>
           </Space>
         </Col>
         <Col span={12} className='flex items-center justify-center'>

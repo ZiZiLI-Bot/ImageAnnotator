@@ -23,12 +23,5 @@ dist-ssr
 *.sln
 *.sw?
 
-docker-compose.yml
-docker-compose.dev.yml
-docker-compose.prod.yml
-dokcerfile
-nginx.conf
-```
-
 *.png
 *.jpg
