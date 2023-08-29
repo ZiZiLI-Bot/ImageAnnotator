@@ -59,7 +59,7 @@ export default function DetectPage() {
   }, [FullView, auth]);
 
   const handleLoadImage = (file, formData) => {
-    console.log(file, formData);
+
     setImage(file);
   };
 

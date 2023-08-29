@@ -29,7 +29,7 @@ export default function LandingPage() {
   };
 
   const navigateToDetect = () => {
-    console.log(auth);
+  
     if (!auth._id) {
       notification.warning({ message: 'You need login to continue!' });
       setLoginModal({ isOpen: true, mode: 'Account Login' });

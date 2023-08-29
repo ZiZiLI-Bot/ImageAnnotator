@@ -118,7 +118,7 @@ export default function HomePage() {
   ];
 
   useLayoutEffect(() => {
-    console.log(auth);
+  
     if (!auth._id || auth.role === 'user') {
       navigate('/');
     }
@@ -399,7 +399,7 @@ const ModalCreateDataset = ({ setModalState, open, loading, setLoading, auth, se
     setRawFileList(newRawFileList);
   };
   const HandleSubmit = async () => {
-    console.log(formDataset);
+  
     for (let [key, value] of Object.entries(formDataset)) {
       if (key === 'description') continue;
       if (key === 'images') continue;
@@ -413,7 +413,7 @@ const ModalCreateDataset = ({ setModalState, open, loading, setLoading, auth, se
     if (rawFileList.length > 0) {
       //Create dataset empty
       const createDataset = await DatasetAPI.createDataset({ ...formDataset, createBy: auth._id });
-      console.log(createDataset);
+    
       if (createDataset?.success) {
         const formData = new FormData();
         for (let i = 0; i < rawFileList.length; i++) {
@@ -427,15 +427,15 @@ const ModalCreateDataset = ({ setModalState, open, loading, setLoading, auth, se
             url: item?.url,
             dataset: createDataset?.data?._id,
           }));
-          console.log(dataImages);
+          
           //Create images
           const createImages = await ImageAPI.createMultipleImages(dataImages);
-          console.log(createImages);
+         
           if (createImages?.success) {
             const ListIdImages = createImages?.data.map((item) => item._id);
             //Update dataset with images after uploaded
             const updateDataset = await DatasetAPI.updateDataset(createDataset?.data?._id, ListIdImages);
-            console.log(updateDataset);
+           
             if (updateDataset?.success) {
               setLoading(false);
               setModalState(false);

@@ -136,7 +136,7 @@ export default function DatasetPage() {
     if (ItemsBoundingBox) {
       renderItemsAccordion();
     }
-    console.log(ItemsBoundingBox);
+
   }, [ItemsBoundingBox]);
 
   const handleDrawBox = (box) => {
@@ -191,16 +191,16 @@ export default function DatasetPage() {
           url: item?.url,
           dataset: id,
         }));
-        console.log(dataImages);
+
         //Create images
         const createImages = await ImageAPI.createMultipleImages(dataImages);
-        console.log(createImages);
+
         if (createImages?.success) {
           const listIdCurrentImages = Dataset.images.map((item) => item._id);
           const ListIdImages = [createImages?.data.map((item) => item._id), ...listIdCurrentImages].flat();
           //Update dataset with images after uploaded
           const updateDataset = await DatasetAPI.updateDataset(id, ListIdImages);
-          console.log(updateDataset);
+  
           if (updateDataset?.success) {
             message.success({
               message: 'Update image to dataset successfully',

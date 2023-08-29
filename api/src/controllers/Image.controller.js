@@ -23,7 +23,6 @@ const ImageController = {
   },
   deleteImage: async (req, res) => {
     const { imageId, datasetId } = req.body;
-    console.log(imageId, datasetId);
     try {
       const deletedImage = await ImageModel.findByIdAndDelete(imageId);
       const dataset = await DatasetModel.findById(datasetId);

@@ -24,7 +24,6 @@ const AuthServices = {
       });
       return decoded;
     } catch (err) {
-      console.log(`Error in decode access token: ${err}`);
       return null;
     }
   },
