@@ -13,6 +13,7 @@ const API_ENDPOINTS = {
   CREATE_MULTIPLE_IMAGES: 'image/createMultipleImages',
   UPDATE_ANNOTATION: 'image/updateAnnotation',
   DELETE_IMAGE: 'image/delete',
+  DETECT_IMAGE: 'detect/image',
 };
 
 export default API_ENDPOINTS;

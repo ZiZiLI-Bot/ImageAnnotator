@@ -2,6 +2,8 @@ import * as fs from 'node:fs/promises';
 import path from 'node:path';
 import { error, success } from '../utils/Response';
 import formidable from 'formidable';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 const UploadController = {
   uploadMultipleFiles: async (req, res) => {
@@ -14,7 +16,7 @@ const UploadController = {
       files.file.forEach(async (file) => {
         const targetPath = path.join(global.__basedir, `../public/uploads/${file.size + '_' + file.originalFilename}`);
         newURL.push({
-          url: `http://${req.headers.host}/file/${file.size + '_' + file.originalFilename}`,
+          url: `${process.env.HOST_NAME}/file/${file.size + '_' + file.originalFilename}`,
           name: file.originalFilename,
         });
         await fs.copyFile(file.filepath, targetPath);

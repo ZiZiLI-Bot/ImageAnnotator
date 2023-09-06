@@ -1,4 +1,4 @@
-FROM node:16-alpine as node
+FROM nikolaik/python-nodejs:python3.11-nodejs18-slim as node
 
 FROM node as server-dependences
 WORKDIR /app
@@ -22,4 +22,8 @@ COPY --from=server-builder /app/package.json /app/package.json
 COPY --from=server-builder /app/.env /app/
 COPY --from=server-builder /app/dist /app/dist
 COPY --from=server-builder /app/public /app/public
+COPY --from=server-builder /app/src/services/Detect.service.py /app/dist/services/Detect.service.py
+COPY --from=server-builder /app/src/assets /app/dist/assets
+COPY --from=server-builder /app/requirements.txt /app/requirements.txt
+RUN pip install -r requirements.txt
 CMD [ "node", "--experimental-modules", "--es-module-specifier-resolution=node", "dist/main.js" ]

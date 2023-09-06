@@ -1,18 +1,20 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, Col, Drawer, Image, Row, Segmented, Space, Typography } from 'antd';
+import { Button, Col, Drawer, Image, Row, Segmented, Space, Typography, notification } from 'antd';
 import { CTUpload } from 'components/CTComponents';
 import { AuthContext } from 'contexts/Auth.context';
 import dayjs from 'dayjs';
-import { useContext, useLayoutEffect, useState } from 'react';
+import { useContext, useEffect, useLayoutEffect, useState } from 'react';
 import { BiChevronsRight } from 'react-icons/bi';
 import { FcAddImage, FcFlashOn, FcMindMap, FcPrevious } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
+import DetectAPI from 'utils/api/Detect.api';
+import UPLOAD_API from 'utils/api/Upload.api';
 
 const { Text } = Typography;
 
 const history = [
   {
-    name: 'YOLOv6',
+    name: 'YOLOv5',
     date: Date.now(),
   },
   {
@@ -26,10 +28,10 @@ const options = [
     label: (
       <div className='flex space-x-2 items-center mt-1 px-5'>
         <FcMindMap className='inline' size={22} />
-        <Text className='text-lg font-bold'>YOLOv6</Text>
+        <Text className='text-lg font-bold'>YOLOv5</Text>
       </div>
     ),
-    value: 'yolov6',
+    value: 'yolov5',
   },
   {
     label: (
@@ -47,20 +49,62 @@ export default function DetectPage() {
   const { auth } = useContext(AuthContext);
   const [FullView, setFullView] = useState(localStorage.getItem('fullView') === 'true');
   const [openDrawer, setOpenDrawer] = useState(false);
-  const [model, setModel] = useState('yolov6');
+  const [model, setModel] = useState('yolov8');
   const [image, setImage] = useState(null);
   const [visible, setVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [imageName, setImageName] = useState('');
+  const [imageDetect, setImageDetect] = useState(null);
 
-  useLayoutEffect(() => {
-    if (!auth._id) {
-      navigate('/');
-    }
+  useEffect(() => {
     localStorage.setItem('fullView', FullView);
   }, [FullView, auth]);
 
-  const handleLoadImage = (file, formData) => {
-
+  const handleLoadImage = async (file, originFile) => {
     setImage(file);
+    const undiscoveredImage = {
+      url: file[0].url,
+      isDiscovered: false,
+    };
+    setImageDetect(undiscoveredImage);
+    setLoading(true);
+    const formData = new FormData();
+    formData.append('file', originFile[0]);
+    const uploadImage = await UPLOAD_API.UploadFile(formData);
+    if (uploadImage.success) {
+      setImageName(uploadImage?.data[0].url.split('/').at(-1));
+      console.log(uploadImage);
+      setLoading(false);
+    } else {
+      setLoading(false);
+      notification.error({ message: 'Upload image failed!' });
+    }
+  };
+
+  const handleReset = () => {
+    setImage(null);
+    setImageDetect(null);
+    setImageName('');
+  };
+
+  const handleDetect = async () => {
+    setLoading(true);
+    const detectImage = await DetectAPI.detect({
+      image_name: imageName,
+      uid: auth._id,
+      model: model === 'yolov8' ? 'YOLOv8_best.onnx' : 'YOLOv5_best.onnx',
+    });
+    if (detectImage.success) {
+      console.log(detectImage);
+      setImageDetect({
+        url: detectImage?.data.resultImage,
+        isDiscovered: true,
+      });
+      notification.success({ message: 'Detect image successfully!' });
+    } else {
+      notification.error({ message: 'Detect image failed!' });
+    }
+    setLoading(false);
   };
 
   return (
@@ -79,7 +123,7 @@ export default function DetectPage() {
           {image ? (
             <Row style={{ height: '85vh' }}>
               <Col span={11} className='flex flex-col items-center justify-center'>
-                <img className='w-3/4 rounded-md' src={image[0].url} alt='Image' />
+                <img crossOrigin='anonymous' className='w-3/4 rounded-md' src={image[0].url} alt='Image' />
                 <Button className='mt-1' onClick={() => setVisible(true)}>
                   Preview
                 </Button>
@@ -100,15 +144,34 @@ export default function DetectPage() {
               <Col span={2} className='flex flex-col items-center justify-center'>
                 <BiChevronsRight size={40} className='animationBounce' />
               </Col>
-              <Col span={11} className='flex items-center justify-center relative'>
-                <Button
-                  size='large'
-                  type=''
-                  className='absolute text-white left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-20 bg-blue-500 hover:bg-blue-600 transition-colors'
-                >
-                  Detect
-                </Button>
-                <img className='w-3/4 rounded-md grayscale' src={image[0].url} alt='Image' />
+              <Col span={11} className='flex flex-col items-center justify-center relative'>
+                {imageDetect.isDiscovered ? (
+                  <>
+                    <div className={`w-3/4 rounded-md overflow-hidden`}>
+                      <Image src={imageDetect.url} crossOrigin='anonymous' width='100%' height='100%' />
+                    </div>
+                    <Button type='' className='text-white mt-1 bg-green-500 hover:bg-green-600'>
+                      Download
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <img
+                      className={`w-3/4 rounded-md ${!imageDetect.isDiscovered && 'grayscale'}`}
+                      crossOrigin='anonymous'
+                      src={imageDetect.url}
+                      alt='Image'
+                    />
+                    <Button
+                      size='large'
+                      type=''
+                      onClick={handleDetect}
+                      className='text-white mt-1 bg-blue-500 hover:bg-blue-600 transition-colors'
+                    >
+                      Detect
+                    </Button>
+                  </>
+                )}
               </Col>
             </Row>
           ) : (
@@ -116,7 +179,7 @@ export default function DetectPage() {
               <div className='w-1/3 h-40'>
                 <CTUpload
                   accept={['image/png', 'image/jpeg', 'image/jpg', 'image/webp']}
-                  onChange={(file, formData) => handleLoadImage(file, formData)}
+                  onChange={(file, originFile) => handleLoadImage(file, originFile)}
                   multiple={false}
                   className='w-full h-full hover:border-blue-600'
                 >
@@ -145,7 +208,7 @@ export default function DetectPage() {
                 <BiChevronsRight size={20} />
               </div>
               <Drawer closable={false} placement='left' onClose={() => setOpenDrawer(false)} open={openDrawer}>
-                <MenuContainer setFullView={setFullView} FullView={FullView} />
+                <MenuContainer setFullView={setFullView} FullView={FullView} reset={() => handleReset()} />
               </Drawer>
             </>
           )}
@@ -155,11 +218,11 @@ export default function DetectPage() {
   );
 }
 
-const MenuContainer = ({ setFullView, FullView }) => {
+const MenuContainer = ({ setFullView, FullView, reset }) => {
   return (
     <>
       <div className='flex space-x-2 px-3 mb-4'>
-        <Button className='flex-1' type='dashed' size='large'>
+        <Button className='flex-1' type='dashed' size='large' onClick={() => reset()}>
           New state
         </Button>
         {!FullView && (
