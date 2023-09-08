@@ -2,23 +2,23 @@ version: '3'
 
 services:
   BEIA:
-    image: hungwap375/mystore:BEIA
+    image: hungwap375/mystore:BEIA_P
     network_mode: 'nginx-proxy'
     container_name: BEIA
     ports:
-      - '4172:4172'
+      - '4175:4175'
     environment:
-      - VIRTUAL_HOST=api.iaproject.cloud
-      - VIRTUAL_PORT=4172
-      - LETSENCRYPT_HOST=api.iaproject.cloud
+      - VIRTUAL_HOST=api.iaproject.chuhung.com
+      - VIRTUAL_PORT=4175
+      - LETSENCRYPT_HOST=api.iaproject.chuhung.com
 
   FEIA:
-    image: hungwap375/mystore:FEIA
+    image: hungwap375/mystore:FEIA_P
     network_mode: 'nginx-proxy'
     container_name: FEIA
     ports:
-      - '4173:4173'
+      - '4174:4174'
     environment:
-      - VIRTUAL_HOST=iaproject.cloud
-      - VIRTUAL_PORT=4173
-      - LETSENCRYPT_HOST=iaproject.cloud
+      - VIRTUAL_HOST=iaproject.chuhung.com
+      - VIRTUAL_PORT=4174
+      - LETSENCRYPT_HOST=iaproject.chuhung.com

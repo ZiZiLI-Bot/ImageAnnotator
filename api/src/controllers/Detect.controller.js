@@ -7,9 +7,9 @@ dotenv.config();
 
 const runProcess = async (originalImage, model, absolutePath) => {
   const processDetect = child.spawn('python', [
-    path.join(global.__basedir, 'services/Detect.service.py'),
+    path.join(global.__basedir, 'services/DetectV8.service.py'),
     originalImage,
-    model,
+    path.join(absolutePath, `assets/models/${model}`),
     absolutePath,
   ]);
   return new Promise((resolve, reject) => {
@@ -30,8 +30,7 @@ const DetectController = {
     const modelPath = path.join(absolutePath, `assets/models/${model}`);
     console.log('modelPath:', modelPath);
     try {
-      const result = await runProcess(image_name, modelPath, absolutePath);
-      console.log(result.toString());
+      const result = await runProcess(image_name, model, absolutePath);
       const { uri_out, status } = JSON.parse(result.toString());
       if (status) {
         const newDetect = new DetectHistoryModel({

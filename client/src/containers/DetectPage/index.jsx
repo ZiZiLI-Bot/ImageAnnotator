@@ -118,7 +118,7 @@ export default function DetectPage() {
             Detect components
           </Text>
           <div className='absolute -top-10 left-1/2 -translate-x-1/2 z-20'>
-            <Segmented defaultValue={model} size='large' options={options} onChange={(value) => setModel(value)} />
+            {/* <Segmented defaultValue={model} size='large' options={options} onChange={(value) => setModel(value)} /> */}
           </div>
           {image ? (
             <Row style={{ height: '85vh' }}>
