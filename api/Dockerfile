@@ -22,7 +22,7 @@ COPY --from=server-builder /app/package.json /app/package.json
 COPY --from=server-builder /app/.env /app/
 COPY --from=server-builder /app/dist /app/dist
 COPY --from=server-builder /app/public /app/public
-COPY --from=server-builder /app/src/services/Detect.service.py /app/dist/services/Detect.service.py
+COPY --from=server-builder /app/src/services/DetectV8.service.py /app/dist/services/DetectV8.service.py
 COPY --from=server-builder /app/src/assets /app/dist/assets
 COPY --from=server-builder /app/requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
