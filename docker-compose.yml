@@ -4,7 +4,7 @@ services:
   BEIA:
     image: hungwap375/mystore:BEIA_P
     network_mode: 'nginx-proxy'
-    container_name: BEIA
+    container_name: BEIA_P
     ports:
       - '4175:4175'
     environment:
@@ -15,7 +15,7 @@ services:
   FEIA:
     image: hungwap375/mystore:FEIA_P
     network_mode: 'nginx-proxy'
-    container_name: FEIA
+    container_name: FEIA_P
     ports:
       - '4174:4174'
     environment:
