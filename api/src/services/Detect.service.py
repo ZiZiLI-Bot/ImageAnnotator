@@ -10,12 +10,19 @@ labels = ['Cap1', 'Cap2', 'Cap3', 'Cap4', 'MOSFET',
 img_width = 0
 img_height = 0
 
+originalImg = sys.argv[1]
+modelPath = sys.argv[2]
 absolutePath = sys.argv[3]
 
-session = ort.InferenceSession(sys.argv[2])
+
+model = modelPath.split('\\')[-1].split('.')[0]
+
+iouFilter = model == 'YOLOv8_best' and 0.6 or 0.1
+
+session = ort.InferenceSession(modelPath)
 
 
-def parse_row(row):
+def parse_rowV8(row):
     xc, yc, w, h = row[:4]
     x1 = (xc-w/2)/640*img_width
     y1 = (yc-h/2)/640*img_height
@@ -23,6 +30,17 @@ def parse_row(row):
     y2 = (yc+h/2)/640*img_height
     prob = row[4:].max()
     class_id = row[4:].argmax()
+    return [x1, y1, x2, y2, class_id, prob]
+
+
+def parse_rowV5(row):
+    xc, yc, w, h = row[:4]
+    x1 = (xc-w/2)/640*img_width
+    y1 = (yc-h/2)/640*img_height
+    x2 = (xc+w/2)/640*img_width
+    y2 = (yc+h/2)/640*img_height
+    prob = row[5:].max()
+    class_id = row[5:].argmax()
     return [x1, y1, x2, y2, class_id, prob]
 
 
@@ -68,43 +86,47 @@ def run_session(input):
     outputs = session.get_outputs()
     output = outputs[0]
     outputs = session.run([output.name], {"images": input})
-    return outputs[0]
+    return outputs
 
 
 def export_img(output):
-    output = output.transpose()
-    row = output[0]
-    x1, y1, x2, y2, class_id, prob = parse_row(row)
+    output = output[0]
+    output = output[0]
+    if (model == 'YOLOv8_best'):
+        output = output.transpose()
 
-    boxes = [row for row in [parse_row(row) for row in output] if row[5] > 0.5]
+    boxes = [row for row in [model == 'YOLOv8_best' and parse_rowV8(
+        row) or parse_rowV5(row) for row in output] if row[5] > 0.5]
     boxes.sort(key=lambda x: x[5], reverse=True)
     results = []
     while len(boxes) > 0:
         results.append(boxes[0])
-        boxes = [box for box in boxes if iou(box, boxes[0]) < 0.6]
+        boxes = [box for box in boxes if iou(
+            box, boxes[0]) < iouFilter]
 
     img = Image.open(os.path.join(
-        absolutePath, f"../public/uploads/{sys.argv[1]}"))
+        absolutePath, f"../public/uploads/{originalImg}"))
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype(os.path.join(
         absolutePath, f"assets/fonts/Gidole-Regular.ttf"), size=18)
     for result in results:
         x1, y1, x2, y2, class_id, prob = result
-        draw.rectangle((x1, y1, x2, y2), None, "#f90101")
+        draw.rectangle((x1, y1, x2, y2), None, "#f90101", width=2)
         draw.text((x1, y1), labels[class_id]+":" +
                   str(round(prob * 100, 1)) + "%", font=font, fill="#f90101")
 
     uri_out = os.path.join(
-        absolutePath, f"../public/uploads/{os.path.basename(sys.argv[1].split('.')[0])}_out.png")
-    res_name_img = os.path.basename(sys.argv[1].split('.')[0])+"_out.png"
+        absolutePath, f"../public/uploads/{os.path.basename(originalImg.split('.')[0])}_out{model == 'YOLOv8_best' and 'V8' or 'V5'}.png")
+    res_name_img = os.path.basename(originalImg.split(
+        '.')[0])+f"_out{model == 'YOLOv8_best' and 'V8' or 'V5'}.png"
     img.save(uri_out)
-    print(f"{{\"uri_out\":\"{res_name_img}\",\"status\":true}}")
+    print(f"{{\"uri_out\":\"{res_name_img}\",\"status\":true,\"count\":{len(results)}}}")
     return 0
 
 
 def main():
     input = prepare_img(
-        os.path.join(absolutePath, f"../public/uploads/{sys.argv[1]}"))
+        os.path.join(absolutePath, f"../public/uploads/{originalImg}"))
     output = run_session(input)
     export_img(output)
 

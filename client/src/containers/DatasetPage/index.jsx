@@ -136,7 +136,6 @@ export default function DatasetPage() {
     if (ItemsBoundingBox) {
       renderItemsAccordion();
     }
-
   }, [ItemsBoundingBox]);
 
   const handleDrawBox = (box) => {
@@ -200,7 +199,7 @@ export default function DatasetPage() {
           const ListIdImages = [createImages?.data.map((item) => item._id), ...listIdCurrentImages].flat();
           //Update dataset with images after uploaded
           const updateDataset = await DatasetAPI.updateDataset(id, ListIdImages);
-  
+
           if (updateDataset?.success) {
             message.success({
               message: 'Update image to dataset successfully',
@@ -379,7 +378,9 @@ export default function DatasetPage() {
             <Row key={image._id} className='w-full h-32 mt-2 rounded-sm hover:bg-slate-200 transition-colors'>
               <Col span={12} className='flex flex-col items-center justify-center'>
                 <Image crossOrigin='anonymous' src={image.url} width={100} height={100} />
-                <Text className='text-xs block line-clamp-1'>{image.name}</Text>
+                <Text className='text-xs block w-60' ellipsis={{ row: 1 }}>
+                  {image.name}
+                </Text>
               </Col>
               <Col span={12} className='flex items-center justify-center'>
                 <Space direction='vertical'>

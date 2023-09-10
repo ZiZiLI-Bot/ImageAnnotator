@@ -14,10 +14,15 @@ const runProcess = async (originalImage, model, absolutePath) => {
   ]);
   return new Promise((resolve, reject) => {
     processDetect.stdout.on('data', (data) => {
-      resolve(data);
+      const res = [];
+      res.push(data.toString());
+      resolve(res);
     });
     processDetect.stderr.on('data', (data) => {
-      reject(data);
+      const err = [];
+      err.push(data.toString());
+      reject(err);
+      console.log(err);
     });
   });
 };
@@ -31,21 +36,39 @@ const DetectController = {
     console.log('modelPath:', modelPath);
     try {
       const result = await runProcess(image_name, modelPath, absolutePath);
-      console.log(result.toString());
-      const { uri_out, status } = JSON.parse(result.toString());
+      console.log('result:', result);
+      const { uri_out, status, count } = JSON.parse(result[0]);
       if (status) {
         const newDetect = new DetectHistoryModel({
           createdBy: uid,
           originalImage: `${process.env.HOST_NAME}/file/${image_name}`,
           resultImage: `${process.env.HOST_NAME}/file/${uri_out}`,
-          modelUsed: model === 'YOLOv8_best.onnx' ? 'yolov8' : 'yolov5',
+          detectCount: count,
+          modelUsed: model,
         });
         await newDetect.save();
         return success(res, newDetect, 'Detect image successfully');
       }
     } catch (err) {
-      console.log(err.toString());
-      return error(res, err.toString(), 'Error while detecting image');
+      return error(res, err, 'Error while detecting image');
+    }
+  },
+  getHistoryByUserId: async (req, res) => {
+    const { uid } = req.params;
+    try {
+      const history = await DetectHistoryModel.find({ createdBy: uid }).sort({ createdAt: -1 }).populate('createdBy');
+      return success(res, history, 'Get history successfully');
+    } catch (err) {
+      return error(res, err, 'Error while getting history');
+    }
+  },
+  deleteHistoryById: async (req, res) => {
+    const { id } = req.params;
+    try {
+      const history = await DetectHistoryModel.findByIdAndDelete(id);
+      return success(res, history, 'Delete history successfully');
+    } catch (err) {
+      return error(res, err, 'Error while deleting history');
     }
   },
 };

@@ -16,6 +16,9 @@ const DetectHistorySchema = new Schema(
     modelUsed: {
       type: String,
     },
+    detectCount: {
+      type: Number,
+    },
   },
   {
     timestamps: true,

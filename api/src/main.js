@@ -22,7 +22,7 @@ app.use(logger('dev'));
 app.use(cors());
 app.use(
   helmet({
-    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false,
     xPoweredBy: false,
   }),
 );

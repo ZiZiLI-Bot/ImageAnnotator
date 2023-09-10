@@ -14,6 +14,8 @@ const API_ENDPOINTS = {
   UPDATE_ANNOTATION: 'image/updateAnnotation',
   DELETE_IMAGE: 'image/delete',
   DETECT_IMAGE: 'detect/image',
+  DETECT_HISTORY_BY_ID: `detect/history`,
+  DELETE_DETECT_HISTORY: `detect/history`,
 };
 
 export default API_ENDPOINTS;

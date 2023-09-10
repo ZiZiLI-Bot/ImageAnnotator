@@ -3,25 +3,14 @@ import { Button, Col, Drawer, Image, Row, Segmented, Space, Typography, notifica
 import { CTUpload } from 'components/CTComponents';
 import { AuthContext } from 'contexts/Auth.context';
 import dayjs from 'dayjs';
-import { useContext, useEffect, useLayoutEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { BiChevronsRight } from 'react-icons/bi';
 import { FcAddImage, FcFlashOn, FcMindMap, FcPrevious } from 'react-icons/fc';
-import { useNavigate } from 'react-router-dom';
 import DetectAPI from 'utils/api/Detect.api';
 import UPLOAD_API from 'utils/api/Upload.api';
+import { FiTrash } from 'react-icons/fi';
 
 const { Text } = Typography;
-
-const history = [
-  {
-    name: 'YOLOv5',
-    date: Date.now(),
-  },
-  {
-    name: 'YOLOv8',
-    date: Date.now(),
-  },
-];
 
 const options = [
   {
@@ -31,7 +20,7 @@ const options = [
         <Text className='text-lg font-bold'>YOLOv5</Text>
       </div>
     ),
-    value: 'yolov5',
+    value: 'YOLOv5_best.onnx',
   },
   {
     label: (
@@ -40,21 +29,65 @@ const options = [
         <Text className='text-lg font-bold'>YOLOv8</Text>
       </div>
     ),
-    value: 'yolov8',
+    value: 'YOLOv8_best.onnx',
   },
 ];
 
 export default function DetectPage() {
-  const navigate = useNavigate();
   const { auth } = useContext(AuthContext);
   const [FullView, setFullView] = useState(localStorage.getItem('fullView') === 'true');
   const [openDrawer, setOpenDrawer] = useState(false);
-  const [model, setModel] = useState('yolov8');
+  const [model, setModel] = useState('YOLOv8_best.onnx');
   const [image, setImage] = useState(null);
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [imageName, setImageName] = useState('');
   const [imageDetect, setImageDetect] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [idActive, setIdActive] = useState('');
+
+  const handleResetState = () => {
+    setImage(null);
+    setImageDetect(null);
+    setIdActive('');
+    setImageName('');
+  };
+
+  const handleDeleteHistory = async (id) => {
+    const deleteHistory = await DetectAPI.deleteHistoryById(id);
+    if (deleteHistory.success) {
+      notification.success({ message: 'Delete history successfully!' });
+      const tempHistory = [...history];
+      const newHistory = tempHistory.filter((item) => item._id !== idActive);
+      setHistory(newHistory);
+      handleResetState();
+    } else {
+      notification.error({ message: 'Delete history failed!' });
+    }
+  };
+
+  useEffect(() => {
+    if (auth._id) {
+      const fetchHistory = async () => {
+        const history = await DetectAPI.getHistoryById(auth._id);
+        if (history.success) {
+          setHistory(history.data);
+          console.log(history);
+        } else {
+          notification.error({ message: 'Get history failed!' });
+        }
+      };
+      fetchHistory();
+    }
+  }, [auth]);
+
+  const handleChangeState = (state) => {
+    setImage([{ url: state.originalImage }]);
+    setImageDetect({ url: state.resultImage, isDiscovered: true });
+    setImageName(state.originalImage.split('/').at(-1));
+    setIdActive(state._id);
+    setModel(state.modelUsed);
+  };
 
   useEffect(() => {
     localStorage.setItem('fullView', FullView);
@@ -81,10 +114,9 @@ export default function DetectPage() {
     }
   };
 
-  const handleReset = () => {
-    setImage(null);
-    setImageDetect(null);
-    setImageName('');
+  const handleChangeModel = (value) => {
+    setModel(value);
+    handleResetState();
   };
 
   const handleDetect = async () => {
@@ -92,10 +124,12 @@ export default function DetectPage() {
     const detectImage = await DetectAPI.detect({
       image_name: imageName,
       uid: auth._id,
-      model: model === 'yolov8' ? 'YOLOv8_best.onnx' : 'YOLOv5_best.onnx',
+      model: model,
     });
     if (detectImage.success) {
-      console.log(detectImage);
+      const tempHistory = [...history];
+      tempHistory.unshift(detectImage.data);
+      setHistory(tempHistory);
       setImageDetect({
         url: detectImage?.data.resultImage,
         isDiscovered: true,
@@ -107,18 +141,39 @@ export default function DetectPage() {
     setLoading(false);
   };
 
+  const handleDownloadImage = async () => {
+    setLoading(true);
+    const imageBlob = await fetch(imageDetect.url).then((r) => r.blob());
+    const blobUrl = URL.createObjectURL(imageBlob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = imageDetect.url.split('/').at(-1);
+    link.click();
+    setLoading(false);
+  };
+
   return (
     <div className='pt-20 h-screen'>
       <Row className='h-full w-full rounded-md relative'>
         <Col span={FullView ? 0 : 4} className='h-full w-full rounded-md'>
-          {!FullView && <MenuContainer setFullView={setFullView} />}
+          {!FullView && (
+            <MenuContainer
+              setFullView={setFullView}
+              FullView={FullView}
+              reset={handleResetState}
+              history={history}
+              handleChangeState={handleChangeState}
+              idActive={idActive}
+              deleteHistory={handleDeleteHistory}
+            />
+          )}
         </Col>
         <Col span={FullView ? 24 : 20} className='bg-slate-50 w-full h-full rounded-lg'>
           <Text className='text-5xl font-bold text-gray-300 absolute top-24 left-1/2 -translate-x-1/2 select-none'>
             Detect components
           </Text>
           <div className='absolute -top-10 left-1/2 -translate-x-1/2 z-20'>
-            <Segmented defaultValue={model} size='large' options={options} onChange={(value) => setModel(value)} />
+            <Segmented value={model} size='large' options={options} onChange={(value) => handleChangeModel(value)} />
           </div>
           {image ? (
             <Row style={{ height: '85vh' }}>
@@ -129,6 +184,7 @@ export default function DetectPage() {
                 </Button>
                 <Image
                   width={200}
+                  crossOrigin='anonymous'
                   style={{
                     display: 'none',
                   }}
@@ -150,7 +206,11 @@ export default function DetectPage() {
                     <div className={`w-3/4 rounded-md overflow-hidden`}>
                       <Image src={imageDetect.url} crossOrigin='anonymous' width='100%' height='100%' />
                     </div>
-                    <Button type='' className='text-white mt-1 bg-green-500 hover:bg-green-600'>
+                    <Button
+                      onClick={handleDownloadImage}
+                      type=''
+                      className='text-white mt-1 bg-green-500 hover:bg-green-600'
+                    >
                       Download
                     </Button>
                   </>
@@ -166,6 +226,8 @@ export default function DetectPage() {
                       size='large'
                       type=''
                       onClick={handleDetect}
+                      loading={loading}
+                      disabled={loading}
                       className='text-white mt-1 bg-blue-500 hover:bg-blue-600 transition-colors'
                     >
                       Detect
@@ -207,8 +269,22 @@ export default function DetectPage() {
               >
                 <BiChevronsRight size={20} />
               </div>
-              <Drawer closable={false} placement='left' onClose={() => setOpenDrawer(false)} open={openDrawer}>
-                <MenuContainer setFullView={setFullView} FullView={FullView} reset={() => handleReset()} />
+              <Drawer
+                closable={false}
+                placement='left'
+                onClose={() => setOpenDrawer(false)}
+                open={openDrawer}
+                idActive={idActive}
+              >
+                <MenuContainer
+                  setFullView={setFullView}
+                  FullView={FullView}
+                  reset={handleResetState}
+                  history={history}
+                  handleChangeState={handleChangeState}
+                  idActive={idActive}
+                  deleteHistory={handleDeleteHistory}
+                />
               </Drawer>
             </>
           )}
@@ -218,11 +294,11 @@ export default function DetectPage() {
   );
 }
 
-const MenuContainer = ({ setFullView, FullView, reset }) => {
+const MenuContainer = ({ setFullView, FullView, reset, history, handleChangeState, idActive, deleteHistory }) => {
   return (
     <>
       <div className='flex space-x-2 px-3 mb-4'>
-        <Button className='flex-1' type='dashed' size='large' onClick={() => reset()}>
+        <Button className='flex-1' type='dashed' size='large' onClick={reset}>
           New state
         </Button>
         {!FullView && (
@@ -233,16 +309,25 @@ const MenuContainer = ({ setFullView, FullView, reset }) => {
       </div>
       <Text className='text-xl block font-bold ml-3'>History</Text>
       <Space direction='vertical' className='w-full mt-4'>
-        {history.map((item, index) => (
+        {history?.map((item) => (
           <div
-            key={index}
-            className='group w-full flex items-center justify-between h-16 px-3 rounded-md cursor-pointer hover:bg-gray-200 transition-colors'
+            key={item._id}
+            onClick={() => handleChangeState(item)}
+            className={`group w-full flex items-center justify-between h-16 px-3 rounded-md cursor-pointer hover:bg-gray-200 transition-colors ${
+              idActive === item._id && 'bg-gray-200'
+            }`}
           >
             <div>
-              <Text className='text-base block'>{dayjs(item.date).format('hh[h]:m[m] DD/MM/YYYY')}</Text>
-              <Text className='text-base block'>{item.name}</Text>
+              <Text className='text-base block'>{dayjs(item.createdAt).format('hh[h]:m[m] DD/MM/YYYY')}</Text>
+              <Text className='text-base block w-60' ellipsis={{ row: 1 }}>
+                {item.originalImage.split('/').at(-1).replace(/^\d+_/, '')}
+              </Text>
             </div>
-            <Text className='text-sm text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity'>View</Text>
+            <div className='text-sm text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity'>
+              <div className='p-1 bg-gray-400 rounded-sm' onClick={() => deleteHistory(item._id)}>
+                <FiTrash size={16} />
+              </div>
+            </div>
           </div>
         ))}
       </Space>
