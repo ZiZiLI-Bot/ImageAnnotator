@@ -40,6 +40,25 @@ const DatasetController = {
       return error(res, err, 'Error when update dataset');
     }
   },
+  updateTagsDataset: async (req, res) => {
+    const { _id, tags } = req.body;
+    const dataset = DatasetModel.findById(_id);
+    if (!dataset) {
+      return error(res, null, 'Dataset not found');
+    }
+    let newTags = [];
+    if (dataset.tags > 0) {
+      newTags = [...dataset.tags, ...tags];
+    } else {
+      newTags = [...tags];
+    }
+    const setNewTags = new Set(newTags);
+    const UpdateDataset = await DatasetModel.findByIdAndUpdate(_id, { tags: [...setNewTags] }, { new: true })
+      .populate('createBy')
+      .populate('invites')
+      .populate('images');
+    return success(res, UpdateDataset, 'Update dataset successfully');
+  },
   getAllDataset: async (req, res) => {
     try {
       const Datasets = await DatasetModel.find().populate('createBy').populate('invites').populate('images');

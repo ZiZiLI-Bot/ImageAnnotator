@@ -67,7 +67,7 @@ export default function ImageAnnotator({ idImage, drawBox, src, auth, activeKey,
       {
         id,
         _id: idImage,
-        tagName: `Tag ${ListBoundingBox.length + 1}`,
+        tagName: `Cap ${ListBoundingBox.length + 1}`,
         x: Math.min(startX, endX),
         y: Math.min(startY, endY),
         width: Math.abs(endX - startX),

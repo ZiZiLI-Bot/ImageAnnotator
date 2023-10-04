@@ -19,7 +19,7 @@ const post = 4172;
 
 const app = express();
 app.use(logger('dev'));
-app.use(cors());
+app.use(cors({ origin: ['http://localhost:4173', 'https://iaproject.cloud'] }));
 app.use(
   helmet({
     crossOriginResourcePolicy: false,

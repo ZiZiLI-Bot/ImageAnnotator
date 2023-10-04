@@ -20,6 +20,7 @@ model = modelPath.split('\\')[-1].split('.')[0]
 iouFilter = model == 'YOLOv8_best' and 0.6 or 0.1
 
 session = ort.InferenceSession(modelPath)
+session._providers = ['CPUExecutionProvider']
 
 
 def parse_rowV8(row):

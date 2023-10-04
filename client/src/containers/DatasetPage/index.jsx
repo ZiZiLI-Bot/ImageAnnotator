@@ -11,6 +11,7 @@ import {
   Segmented,
   Space,
   Spin,
+  Tag,
   Tooltip,
   Typography,
   message,
@@ -60,6 +61,11 @@ export default function DatasetPage() {
   const [UploadImage, setUploadImage] = useState([]);
   const [UploadImageRaw, setUploadImageRaw] = useState([]);
   const [openDrawerSelectImage, setOpenDrawerSelectImage] = useState(false);
+  const [tags, setTags] = useState([]);
+
+  useEffect(() => {
+    console.log(AccordionKey);
+  }, [AccordionKey]);
 
   const renderItemsAccordion = () => {
     const items = ItemsBoundingBox?.map((item, idx) => ({
@@ -68,11 +74,6 @@ export default function DatasetPage() {
         <Text className='text-base' style={{ color: item.color }}>
           {item.tagName}
         </Text>
-      ),
-      extra: (
-        <Tooltip title='Drop tag'>
-          <BiTrash className='inline text-red-600' size={18} onClick={() => handleDropTag(item)} />
-        </Tooltip>
       ),
       children: (
         <Space direction='vertical' className='w-full'>
@@ -94,11 +95,29 @@ export default function DatasetPage() {
             onChange={(value) => handleChangeListBoundingBox(value, idx, 'moreInfo')}
           />
 
-          <ColorPicker
-            value={item.color}
-            showText
-            onChange={(value) => handleChangeListBoundingBox(value.toHexString(), idx, 'color')}
-          />
+          <Space size={[0, 8]} wrap className='my-1'>
+            {tags?.map((tag, index) => (
+              <Tag
+                key={tag + index}
+                className='cursor-pointer'
+                onClick={() => handleChangeListBoundingBox(tag, idx, 'tagName')}
+                color='magenta'
+              >
+                {tag}
+              </Tag>
+            ))}
+          </Space>
+
+          <div className='flex items-end justify-between'>
+            <ColorPicker
+              value={item.color}
+              showText
+              onChange={(value) => handleChangeListBoundingBox(value.toHexString(), idx, 'color')}
+            />
+            <Tooltip title='Drop tag'>
+              <BiTrash className='inline text-red-600 cursor-pointer' size={20} onClick={() => handleDropTag(item)} />
+            </Tooltip>
+          </div>
         </Space>
       ),
     }));
@@ -122,8 +141,10 @@ export default function DatasetPage() {
     const fetchDataset = async () => {
       setLoading(true);
       const dataset = await DatasetAPI.getDatasetById(id);
+      console.log(dataset);
       setDataset(dataset?.data);
       if (dataset?.success) {
+        setTags(dataset?.data?.tags);
         setImageActive(dataset?.data?.images[0]);
         setItemsBoundingBox(dataset?.data?.images[0]?.annotations);
       }
@@ -144,6 +165,10 @@ export default function DatasetPage() {
   };
 
   const HandleUpdateAnnotator = async () => {
+    const tagsListImage = ItemsBoundingBox.map((item) => item.tagName);
+    const setTagsListImage = new Set(tagsListImage);
+    setTags(Array.from(setTagsListImage));
+    await DatasetAPI.updateTagsDataset(id, Array.from(setTagsListImage));
     const data = {
       _id: ImageActive._id,
       annotations: ItemsBoundingBox,

@@ -6,6 +6,7 @@ const DatasetSchema = new Schema(
     name: {
       type: String,
     },
+    tags: [{ type: String, default: [] }],
     description: {
       type: String,
     },

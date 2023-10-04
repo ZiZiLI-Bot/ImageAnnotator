@@ -5,6 +5,7 @@ const API_ENDPOINTS = {
   GET_ALL_USERS: 'auth/getAllUsers',
   CREATE_DATASET: 'dataset/create',
   UPDATE_DATASET: 'dataset/update',
+  UPDATE_TAGS_DATASET: 'dataset/updateTags',
   GET_ALL_DATASETS: 'dataset/all',
   GET_DATASET_BY_CREATE_ID: 'dataset/me',
   GET_DATASET_ME_INVITE: 'dataset/invite',

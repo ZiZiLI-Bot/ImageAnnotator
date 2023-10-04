@@ -1,3 +1,3 @@
 Pillow
 numpy
-onnxruntime
+onnxruntime==1.15.1

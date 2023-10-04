@@ -7,7 +7,7 @@ import Cookies from 'js-cookie';
 import { useContext, useEffect, useState } from 'react';
 import { BiLogInCircle, BiUser, BiUserCircle, BiUserPlus } from 'react-icons/bi';
 import { MdKey, MdOutlineMail, MdPhoneIphone } from 'react-icons/md';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthAPI from 'utils/api/Auth.api';
 import illustrationsLogin from '../../assets/illustrationsLogin.svg';
 import illustrationsRG from '../../assets/illustrationsRG.svg';
@@ -34,6 +34,7 @@ const registerForm = {
 export default function Navbar() {
   const { loginModal, setLoginModal } = useContext(LoginModalContext);
   const { auth, setAuth } = useContext(AuthContext);
+  const navigation = useNavigate();
   const HandleModalLogin = (mode) => {
     setLoginModal({
       isOpen: true,
@@ -55,6 +56,7 @@ export default function Navbar() {
       message: 'Logout Account!',
       duration: 1,
     });
+    navigation('/');
     setTimeout(() => {
       window.location.reload();
     }, 500);

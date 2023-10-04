@@ -20,6 +20,9 @@ const DatasetAPI = {
   updateDataset: async (_id, data) => {
     return await AxiosClient.put(API_ENDPOINTS.UPDATE_DATASET, { _id, images: data });
   },
+  updateTagsDataset: async (_id, tags) => {
+    return await AxiosClient.post(API_ENDPOINTS.UPDATE_TAGS_DATASET, { _id, tags });
+  },
   dropDataset: async (datasetId) => {
     return await AxiosClient.delete(`${API_ENDPOINTS.DELETE_DATASET}/${datasetId}`);
   },

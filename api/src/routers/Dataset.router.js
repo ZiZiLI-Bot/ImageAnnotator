@@ -7,6 +7,7 @@ DatasetRouter.get('/invite/:userId', DatasetController.getDatasetMeInvite);
 DatasetRouter.get('/me/:userId', DatasetController.getDatasetByCreateId);
 DatasetRouter.get('/:datasetId', DatasetController.getDatasetById);
 DatasetRouter.post('/create', DatasetController.createDataset);
+DatasetRouter.post('/updateTags', DatasetController.updateTagsDataset);
 DatasetRouter.put('/update', DatasetController.updateDataset);
 DatasetRouter.delete('/delete/:datasetId', DatasetController.dropDataset);
 

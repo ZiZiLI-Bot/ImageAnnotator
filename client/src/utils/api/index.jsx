@@ -5,6 +5,7 @@ import Cookies from 'js-cookie';
 const AxiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: {
+    'Access-Control-Allow-Origin': '*',
     'content-type': 'application/json',
   },
   paramsSerializer: {

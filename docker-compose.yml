@@ -11,6 +11,7 @@ services:
       - VIRTUAL_HOST=api.iaproject.cloud
       - VIRTUAL_PORT=4172
       - LETSENCRYPT_HOST=api.iaproject.cloud
+    restart: always
 
   FEIA:
     image: hungwap375/mystore:FEIA
@@ -22,3 +23,4 @@ services:
       - VIRTUAL_HOST=iaproject.cloud
       - VIRTUAL_PORT=4173
       - LETSENCRYPT_HOST=iaproject.cloud
+    restart: always
