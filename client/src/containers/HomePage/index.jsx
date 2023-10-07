@@ -118,7 +118,6 @@ export default function HomePage() {
   ];
 
   useLayoutEffect(() => {
-  
     if (!auth._id || auth.role === 'user') {
       navigate('/');
     }
@@ -130,6 +129,7 @@ export default function HomePage() {
       if (auth?._id) {
         const MyDataset = await DatasetAPI.getDatasetByCreateId(auth._id);
         if (MyDataset?.success) {
+          console.log(MyDataset?.data);
           setMyDataset(MyDataset?.data);
         }
         const InvitesDataset = await DatasetAPI.getDatasetMeInvite(auth._id);
@@ -226,7 +226,7 @@ export default function HomePage() {
                       >
                         <Text className='block text-gray-500 text-base'>Create by: {dataset.createBy.fullName}</Text>
                         <Text className='block text-gray-500 text-base'>
-                          Create at: {dayjs(dataset.createAt).format('DD/MM/YYYY')}
+                          Create at: {dayjs(dataset.createdAt).format('DD/MM/YYYY')}
                         </Text>
                         <Text className='block text-gray-500 text-base'>Items: {dataset.images.length} images</Text>
                       </Card>
@@ -288,7 +288,7 @@ export default function HomePage() {
               >
                 <Text className='block text-gray-500 text-base'>Create by: {dataset.createBy.fullName}</Text>
                 <Text className='block text-gray-500 text-base'>
-                  Create at: {dayjs(dataset.createAt).format('DD/MM/YYYY')}
+                  Create at: {dayjs(dataset.createdAt).format('DD/MM/YYYY')}
                 </Text>
                 <Text className='block text-gray-500 text-base'>Items: {dataset.images.length} images</Text>
               </Card>
@@ -399,7 +399,6 @@ const ModalCreateDataset = ({ setModalState, open, loading, setLoading, auth, se
     setRawFileList(newRawFileList);
   };
   const HandleSubmit = async () => {
-  
     for (let [key, value] of Object.entries(formDataset)) {
       if (key === 'description') continue;
       if (key === 'images') continue;
@@ -413,7 +412,7 @@ const ModalCreateDataset = ({ setModalState, open, loading, setLoading, auth, se
     if (rawFileList.length > 0) {
       //Create dataset empty
       const createDataset = await DatasetAPI.createDataset({ ...formDataset, createBy: auth._id });
-    
+
       if (createDataset?.success) {
         const formData = new FormData();
         for (let i = 0; i < rawFileList.length; i++) {
@@ -427,15 +426,15 @@ const ModalCreateDataset = ({ setModalState, open, loading, setLoading, auth, se
             url: item?.url,
             dataset: createDataset?.data?._id,
           }));
-          
+
           //Create images
           const createImages = await ImageAPI.createMultipleImages(dataImages);
-         
+
           if (createImages?.success) {
             const ListIdImages = createImages?.data.map((item) => item._id);
             //Update dataset with images after uploaded
             const updateDataset = await DatasetAPI.updateDataset(createDataset?.data?._id, ListIdImages);
-           
+
             if (updateDataset?.success) {
               setLoading(false);
               setModalState(false);

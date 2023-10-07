@@ -7,7 +7,10 @@ dotenv.config();
 
 const runProcess = async (originalImage, model, absolutePath) => {
   const processDetect = child.spawn('python', [
-    path.join(global.__basedir, 'services/Detect.service.py'),
+    path.join(
+      global.__basedir,
+      model === 'YOLOv8_best.onnx' ? 'services/DetectV8.service.py' : 'services/DetectV5.service.py',
+    ),
     originalImage,
     model,
     absolutePath,
@@ -31,11 +34,8 @@ const DetectController = {
   detectImage: async (req, res) => {
     const { image_name, uid, model } = req.body;
     const absolutePath = global.__basedir;
-    console.log('absolutePath:', absolutePath);
-    const modelPath = path.join(absolutePath, `assets/models/${model}`);
-    console.log('modelPath:', modelPath);
     try {
-      const result = await runProcess(image_name, modelPath, absolutePath);
+      const result = await runProcess(image_name, model, absolutePath);
       console.log('result:', result);
       const { uri_out, status, count } = JSON.parse(result[0]);
       if (status) {

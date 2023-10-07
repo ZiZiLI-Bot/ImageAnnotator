@@ -115,12 +115,12 @@ def export_img(output):
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype(os.path.join(
         absolutePath, f"assets/fonts/Gidole-Regular.ttf"), size=18)
-    print(results)
+    # print(results)
     for result in results:
         x1, y1, x2, y2, class_id, prob = result
         draw.rectangle((x1, y1, x2, y2), None, "#f90101", width=2)
-        draw.text((x1, y1), labels[class_id]+":" +
-                  str(round(prob * 100, 1)) + "%", font=font, fill="#f90101")
+        # draw.text((x1, y1), labels[class_id]+":" +
+        #           str(round(prob * 100, 1)) + "%", font=font, fill="#f90101")
 
     uri_out = os.path.join(
         absolutePath, f"../public/uploads/{os.path.basename(originalImg.split('.')[0])}_out{model == 'YOLOv8_best' and 'V8' or 'V5'}.png")
@@ -132,6 +132,7 @@ def export_img(output):
 
 
 def main():
+    # print(ort.__version__)
     input = prepare_img(
         os.path.join(absolutePath, f"../public/uploads/{originalImg}"))
     output = run_session(input)
