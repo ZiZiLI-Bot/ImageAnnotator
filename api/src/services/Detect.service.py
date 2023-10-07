@@ -10,17 +10,22 @@ labels = ['Cap1', 'Cap2', 'Cap3', 'Cap4', 'MOSFET',
 img_width = 0
 img_height = 0
 
-originalImg = sys.argv[1]
-modelPath = sys.argv[2]
-absolutePath = sys.argv[3]
+
+# originalImg = sys.argv[1]
+# modelPath = sys.argv[2]
+# absolutePath = sys.argv[3]
+
+originalImg = '662812_372668746_2326993304157035_7543143290248861195_n.png'
+modelPath = 'C:\\WorkSpace\\Project\\ImageAnnotator\\api\\src\\assets\\models\\YOLOv8_best.onnx'
+absolutePath = 'C:\\WorkSpace\\Project\\ImageAnnotator\\api\\src'
 
 
 model = modelPath.split('\\')[-1].split('.')[0]
 
 iouFilter = model == 'YOLOv8_best' and 0.6 or 0.1
 
-session = ort.InferenceSession(modelPath)
-session._providers = ['CPUExecutionProvider']
+session = ort.InferenceSession(modelPath, providers=['CPUExecutionProvider'])
+# session._providers = ['CPUExecutionProvider']
 
 
 def parse_rowV8(row):
@@ -110,6 +115,7 @@ def export_img(output):
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype(os.path.join(
         absolutePath, f"assets/fonts/Gidole-Regular.ttf"), size=18)
+    print(results)
     for result in results:
         x1, y1, x2, y2, class_id, prob = result
         draw.rectangle((x1, y1, x2, y2), None, "#f90101", width=2)
